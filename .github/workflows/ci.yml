@@ -41,6 +41,27 @@ jobs:
     # below. Scoped to this job rather than workflow-wide so the iOS
     # and pana jobs (which do not upload coverage) keep the read-only
     # default.
+    #
+    # Threat model note: jobs with `id-token: write` can mint OIDC JWTs
+    # for any audience, which is a real concern when the job executes
+    # PR-submitted code (tests, build scripts) -- a malicious fork PR
+    # could exfiltrate a token and replay it against any external
+    # service that trusts this repo's OIDC.
+    #
+    # Today's blast radius is bounded by the trust policies of the two
+    # OIDC consumers we use:
+    #   - pub.dev trusted publishing (release.yml) is pinned to the
+    #     `release.yml` workflow file path; tokens minted here carry
+    #     `job_workflow_ref: .../ci.yml@refs/pull/N/merge` and are
+    #     rejected by pub.dev's policy check.
+    #   - Codecov validates `repository`/`repository_owner` claims; a
+    #     stolen token can only upload (junk) coverage to this repo's
+    #     own Codecov project. Annoying, not dangerous.
+    #
+    # If a third OIDC trust relationship is ever added, re-evaluate
+    # whether to split this step into a `workflow_run`-triggered job
+    # that downloads the coverage artifact (so OIDC-capable code never
+    # executes PR contents). Tracked in battery_monitor-q7j.
     permissions:
       contents: read
       id-token: write
