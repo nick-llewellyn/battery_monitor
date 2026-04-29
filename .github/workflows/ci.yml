@@ -15,8 +15,13 @@ on:
       - '.gitignore'
   workflow_dispatch:
 
-# Default to read-only GITHUB_TOKEN for the whole workflow; jobs that
-# need to mint extra credentials (Codecov OIDC) opt in explicitly.
+# Workflow-wide GITHUB_TOKEN baseline: grant `contents: read` (the
+# minimum `actions/checkout` needs) and implicitly deny every other
+# scope. Jobs that need additional permissions opt in explicitly --
+# see the `build` job below for `id-token: write` (Codecov OIDC).
+# We deliberately do NOT use `read-all` here: extra read scopes
+# (issues, pull-requests, packages, ...) would authorize future
+# steps to read data this workflow has no business touching.
 permissions:
   contents: read
 
