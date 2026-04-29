@@ -94,3 +94,47 @@ jobs:
       - name: Build example APK (debug)
         working-directory: example/android
         run: ./gradlew assembleDebug
+
+  ios:
+    # Native iOS compile gate. Runs on macos-latest because that is the
+    # only runner image with Xcode + iOS simulator SDKs. Separate job
+    # rather than a matrix axis on `build:` so the linux and macOS legs
+    # run in parallel (wall time = max, not sum). Same Flutter matrix
+    # as `build:` so SDK-floor regressions in BatteryMonitorPlugin.swift
+    # or the podspec surface on both 3.35.0 and 3.41.7.
+    #
+    # `flutter build ios --simulator --no-codesign` is the cheapest task
+    # that exercises the full plugin -> example link path on the Swift
+    # side: it transparently runs `pod install` in example/ios as part
+    # of its build pipeline, skips provisioning profile setup, and
+    # produces a .app for the simulator (no device signing required).
+    #
+    # Note: macos-latest minutes are billed at ~10x the rate of
+    # ubuntu-latest. CI-6 (Pods + pub cache) will reduce the cold-build
+    # cost; for now, expect 5-10 min per leg until that lands.
+    name: iOS (Flutter ${{ matrix.flutter }})
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        flutter: ['3.35.0', '3.41.7']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ matrix.flutter }}
+          channel: 'stable'
+
+      - name: Resolve package dependencies
+        run: flutter pub get
+
+      - name: Resolve example dependencies
+        working-directory: example
+        run: flutter pub get
+
+      - name: Build example for iOS simulator
+        working-directory: example
+        run: flutter build ios --simulator --no-codesign
