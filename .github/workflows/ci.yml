@@ -108,11 +108,13 @@ jobs:
       # Coverage shipped two ways:
       #   1. Workflow artifact for direct download / local debugging
       #      without depending on a third-party dashboard.
-      #   2. Codecov for diff coverage and PR comments. Tokenless
-      #      upload works because the repo is public; codecov-action
-      #      v4 detects this automatically when `token:` is omitted.
-      # `fail_ci_if_error: false` keeps Codecov outages from breaking
-      # the build (third-party SLO is not in our CI critical path).
+      #   2. Codecov for diff coverage and PR comments. Codecov v4
+      #      requires a repository upload token even on public repos
+      #      when the target branch is protected; the token is set
+      #      via the CODECOV_TOKEN secret (configured in repo
+      #      settings, not committed). `fail_ci_if_error: false`
+      #      keeps Codecov outages from breaking the build (third-
+      #      party SLO is not in our CI critical path).
       - name: Upload coverage artifact
         if: matrix.flutter == '3.41.7'
         uses: actions/upload-artifact@v4
@@ -127,6 +129,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           files: coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
       - name: Resolve example dependencies
@@ -143,14 +146,18 @@ jobs:
 
       # Native Android compile gate. Runs matrix-wide so SDK-floor
       # regressions in plugin Kotlin or AGP/Gradle interaction surface
-      # on the 3.35.0 leg, not only on the .fvmrc pin. assembleDebug is
-      # the cheapest task that exercises the full plugin -> example
-      # link path (Kotlin compile, manifest merge, resource pack, dex).
-      # Relies on the prior `flutter pub get` in example/ to have
-      # generated .flutter-plugins-dependencies.
+      # on the 3.35.0 leg, not only on the .fvmrc pin. `flutter build
+      # apk --debug` exercises the full plugin -> example link path
+      # (Kotlin compile, manifest merge, resource pack, dex) via
+      # Flutter's tooling, which invokes Gradle through the wrapper
+      # JAR directly. Going through `flutter` (not `./gradlew`) is the
+      # canonical CI path because the example's `gradlew` and
+      # `gradlew.bat` launcher scripts are gitignored by the standard
+      # Flutter project template; only `gradle-wrapper.jar` is
+      # committed.
       - name: Build example APK (debug)
-        working-directory: example/android
-        run: ./gradlew assembleDebug
+        working-directory: example
+        run: flutter build apk --debug
 
   ios:
     # Native iOS compile gate. Runs on macos-latest because that is the
