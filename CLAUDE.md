@@ -83,9 +83,11 @@ iOS) surfaced as `ValueListenable`s on the Dart side.
   listenables into one `ValueListenable<BatteryInfo?>` by registering
   a listener that recomputes the snapshot on every change.
 - `android/src/.../BatteryMonitorPlugin.kt` and
-  `ios/Classes/BatteryMonitorPlugin.swift` register the three
-  EventChannels and wire them to per-channel stream handlers backed by
-  the OS notification APIs (BroadcastReceiver / NotificationCenter).
+  `ios/battery_monitor/Sources/battery_monitor/BatteryMonitorPlugin.swift`
+  register the three EventChannels and wire them to per-channel stream
+  handlers backed by the OS notification APIs (BroadcastReceiver /
+  NotificationCenter). The iOS sources sit under the SPM package layout
+  consumed by both `Package.swift` and the legacy `ios/battery_monitor.podspec`.
 
 See [`doc/architecture.md`](doc/architecture.md) for the channel
 specs and DI reference.

@@ -10,7 +10,9 @@ EventChannels. Event-driven on both platforms (no polling).
   s.license          = { :type => 'MIT', :file => '../LICENSE' }
   s.author           = { 'Nicholas Llewellyn' => 'nllewelln@gmail.com' }
   s.source           = { :path => '.' }
-  s.source_files     = 'Classes/**/*'
+  # Sources live under battery_monitor/Sources/battery_monitor/ to share a
+  # single source tree with Package.swift (Swift Package Manager).
+  s.source_files     = 'battery_monitor/Sources/battery_monitor/**/*'
   s.dependency 'Flutter'
   s.platform         = :ios, '13.0'
   s.swift_version    = '5.0'

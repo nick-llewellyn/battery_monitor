@@ -57,12 +57,15 @@ intentionally Android+iOS only; desktop is tracked in
 `battery_monitor-rue` and web has no equivalent battery API. Accept the
 10-point penalty unless desktop ships.
 
-### Swift Package Manager: partial
+### Swift Package Manager: resolved
 
-Pana reports `ios/battery_monitor/Package.swift` missing. Flutter's iOS
-plugin tooling now prefers SPM over CocoaPods; not having a manifest
-costs a fraction of the platform-support score. Track separately
-(future ticket); not a publish blocker.
+Resolved by `battery_monitor-egz`: the iOS plugin ships
+`ios/battery_monitor/Package.swift` alongside the legacy
+`ios/battery_monitor.podspec`. Both consume the same source tree under
+`ios/battery_monitor/Sources/battery_monitor/`, so consumers can pick
+either build system. The Flutter framework is auto-linked by Flutter's
+SPM integration; no explicit `FlutterFramework` dependency is declared
+because that would raise the package's Flutter floor to 3.41.0.
 
 ### Screenshots: not yet declared
 

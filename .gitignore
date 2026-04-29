@@ -12,6 +12,10 @@ example/macos/Podfile.lock
 example/ios/Pods/
 example/macos/Pods/
 
+# Swift Package Manager build artefacts
+.build/
+.swiftpm/
+
 # IDE -- JetBrains
 .idea/
 *.iml
