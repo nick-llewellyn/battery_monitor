@@ -105,11 +105,14 @@ jobs:
       - name: Run Dart tests
         run: flutter test --coverage
 
-      # Artifact fallback per the CI-4 plan: this repo is private and
-      # no CODECOV_TOKEN is configured, so the lcov.info goes up as a
-      # workflow artifact rather than to Codecov. Once a token is
-      # added (Settings > Secrets > Actions), swap this step for the
-      # commented codecov-action block below.
+      # Coverage shipped two ways:
+      #   1. Workflow artifact for direct download / local debugging
+      #      without depending on a third-party dashboard.
+      #   2. Codecov for diff coverage and PR comments. Tokenless
+      #      upload works because the repo is public; codecov-action
+      #      v4 detects this automatically when `token:` is omitted.
+      # `fail_ci_if_error: false` keeps Codecov outages from breaking
+      # the build (third-party SLO is not in our CI critical path).
       - name: Upload coverage artifact
         if: matrix.flutter == '3.41.7'
         uses: actions/upload-artifact@v4
@@ -119,13 +122,12 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      # - name: Upload coverage to Codecov
-      #   if: matrix.flutter == '3.41.7'
-      #   uses: codecov/codecov-action@v4
-      #   with:
-      #     files: coverage/lcov.info
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     fail_ci_if_error: true
+      - name: Upload coverage to Codecov
+        if: matrix.flutter == '3.41.7'
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage/lcov.info
+          fail_ci_if_error: false
 
       - name: Resolve example dependencies
         working-directory: example
@@ -280,3 +282,24 @@ jobs:
       # publish-time gate.
       - name: Verify pub publish dry-run
         run: flutter pub publish --dry-run
+
+  dependency-review:
+    # Supply-chain gate: flags newly-introduced dependencies with known
+    # CVEs or disallowed licenses by diffing the PR against the base
+    # ref. PR-scoped because the action requires a base..head diff;
+    # `push` events to main have no equivalent context. Free on public
+    # repos (no GitHub Advanced Security required).
+    #
+    # `fail-on-severity: high` is the starting floor per the CI-7 plan;
+    # tighten to `moderate` once we observe real signal volume.
+    name: Dependency review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Review dependencies
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high

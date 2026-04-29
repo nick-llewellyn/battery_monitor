@@ -15,17 +15,7 @@ catch and the manual steps required around the first publish.
 
 These must be resolved before the first publish; they are not gated by CI.
 
-### 1. Repository visibility
-
-Pana 0.22+ does a live `HEAD` against `homepage`, `repository`, and
-`issue_tracker`. The repo is currently `PRIVATE`, so all three resolve
-to a 404 for the pana runner and cost 10/30 in the *Follow Dart file
-conventions* section.
-
-Resolution: flip the repo to public before the first publish, or change
-the three URLs in `pubspec.yaml` to a public mirror.
-
-### 2. Pub.dev trusted publisher
+### 1. Pub.dev trusted publisher
 
 CI-8 publishes via OIDC, not a long-lived token. Before the release
 workflow can succeed:
@@ -53,6 +43,7 @@ once a package exists.
 | Static analysis | done | Pana scores 50/50. |
 | Up-to-date dependencies | done | Pana scores 40/40. |
 | Description length | done | Trimmed to 164 chars (60–180 window). |
+| Repository visibility | done | Repo flipped to public 2026-04-29; pana URL probes against `homepage`/`repository`/`issue_tracker` now reachable. |
 
 ## Known score leaks (non-blocking)
 
@@ -98,7 +89,7 @@ git push origin main --tags
 ```
 
 After this completes once, configure trusted publisher (see *Blockers
-§2*) and subsequent releases run from the CI-8 workflow on tag push.
+§1*) and subsequent releases run from the CI-8 workflow on tag push.
 
 ## When to re-run pana locally
 
