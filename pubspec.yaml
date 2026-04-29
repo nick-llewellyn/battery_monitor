@@ -3,7 +3,7 @@ description: >-
   Event-driven battery level, charging state, and power-save mode for
   Flutter. Native EventChannels (Android, iOS) lifted into
   ValueListenables; injectable for tests.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/nick-llewellyn/battery_monitor
 repository: https://github.com/nick-llewellyn/battery_monitor
 issue_tracker: https://github.com/nick-llewellyn/battery_monitor/issues

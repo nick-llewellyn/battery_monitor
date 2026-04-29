@@ -1,9 +1,8 @@
 # Changelog
 
-## 1.0.0
+## 1.0.1
 
-First stable release. The public API surface from 0.1.0 is unchanged
-and is now committed to under semantic versioning.
+Bug-fix release. No public API changes from 1.0.0.
 
 ### Bug fixes
 
@@ -25,6 +24,11 @@ and is now committed to under semantic versioning.
   unit tests remain isolated. Regression tests cover both the
   per-class identity invariant and a two-`BatteryProvider` fan-out
   driven through the test binary messenger.
+
+## 1.0.0
+
+First stable release. The public API surface from 0.1.0 is unchanged
+and is now committed to under semantic versioning.
 
 ### Architecture
 
