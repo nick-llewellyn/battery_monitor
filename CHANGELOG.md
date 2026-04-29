@@ -14,12 +14,17 @@ and is now committed to under semantic versioning.
   values in `0..100` and `BatteryInfo`'s 0..100 assert no longer trips
   in debug builds when the platform reports an unknown level.
 - `BatteryLevelChannel`, `BatteryStateChannel`, and
-  `BatterySaveModeChannel` now cache the mapped broadcast stream per
-  instance instead of calling `EventChannel.receiveBroadcastStream()`
-  on every getter access. Multiple subscribers (or repeated getter
-  reads) share a single binary-messenger handler, so a later listen no
-  longer silences earlier subscribers. Unit tests cover the multi-
-  listener fan-out for all three channels.
+  `BatterySaveModeChannel` now share their mapped platform broadcast
+  stream process-wide via a static cache, instead of calling
+  `EventChannel.receiveBroadcastStream()` per instance. The previous
+  per-instance cache silenced earlier subscribers as soon as a second
+  `BatteryProvider` (or any second wrapper instance for the same
+  channel name) was constructed and listened, because the new
+  `receiveBroadcastStream()` call re-registered the binary messenger
+  handler. The injected `eventStream` test seam stays per-instance so
+  unit tests remain isolated. Regression tests cover both the
+  per-class identity invariant and a two-`BatteryProvider` fan-out
+  driven through the test binary messenger.
 
 ### Architecture
 

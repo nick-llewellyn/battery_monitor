@@ -149,4 +149,19 @@ void main() {
       },
     );
   });
+
+  group('BatteryStateChannel platform path', () {
+    setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+    });
+
+    test('shares mapped stream across independent instances', () {
+      final a = BatteryStateChannel();
+      final b = BatteryStateChannel();
+
+      check(
+        identical(a.onBatteryStateChanged, b.onBatteryStateChanged),
+      ).isTrue();
+    });
+  });
 }

@@ -97,4 +97,19 @@ void main() {
       },
     );
   });
+
+  group('BatteryLevelChannel platform path', () {
+    setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+    });
+
+    test('shares mapped stream across independent instances', () {
+      final a = BatteryLevelChannel();
+      final b = BatteryLevelChannel();
+
+      check(
+        identical(a.onBatteryLevelChanged, b.onBatteryLevelChanged),
+      ).isTrue();
+    });
+  });
 }

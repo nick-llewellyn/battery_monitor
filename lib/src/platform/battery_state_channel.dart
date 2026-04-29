@@ -36,8 +36,16 @@ class BatteryStateChannel {
     'com.nllewellyn.battery_monitor/battery_state',
   );
 
+  /// Process-wide cache of the mapped platform broadcast stream.
+  ///
+  /// Calling [EventChannel.receiveBroadcastStream] more than once for
+  /// the same channel name re-registers the binary-messenger handler
+  /// and silences earlier subscribers, so every wrapper instance backed
+  /// by the real [EventChannel] must share the same mapped stream.
+  static Stream<ChargingState>? _sharedPlatformStream;
+
   final Stream<dynamic>? _eventStream;
-  Stream<ChargingState>? _onBatteryStateChanged;
+  Stream<ChargingState>? _injectedStream;
 
   /// Stream of battery charging state changes.
   ///
@@ -46,11 +54,13 @@ class BatteryStateChannel {
   /// `UIDevice.batteryStateDidChangeNotification`; on Android it is
   /// backed by `Intent.ACTION_BATTERY_CHANGED`.
   ///
-  /// The mapped broadcast stream is cached per channel instance, so
-  /// repeated reads of this getter -- and multiple subscribers -- share
-  /// the same underlying [EventChannel.receiveBroadcastStream]
-  /// subscription. Without that caching, every read would re-register
-  /// the binary messenger handler and silence earlier subscribers.
+  /// The mapped broadcast stream is shared process-wide for the
+  /// production path, so any number of [BatteryStateChannel] instances
+  /// (and any number of `BatteryProvider`s constructed from them) all
+  /// observe the same underlying
+  /// [EventChannel.receiveBroadcastStream] subscription. When an
+  /// `eventStream` is injected for testing, the cache is per-instance
+  /// so each test fixture stays isolated.
   ///
   /// **Mapping from native int values:**
   /// - 0 = [ChargingState.unknown]
@@ -65,29 +75,31 @@ class BatteryStateChannel {
   /// - Platform errors are propagated through the stream's error
   ///   channel.
   Stream<ChargingState> get onBatteryStateChanged {
-    return _onBatteryStateChanged ??=
-        (_eventStream ?? _eventChannel.receiveBroadcastStream()).map((
-          dynamic stateCode,
-        ) {
-          if (stateCode is! int) {
-            throw Exception(
-              'Invalid battery state type: ${stateCode.runtimeType}',
-            );
-          }
+    final injected = _eventStream;
+    if (injected != null) {
+      return _injectedStream ??= injected.map(_mapState);
+    }
+    return _sharedPlatformStream ??= _eventChannel.receiveBroadcastStream().map(
+      _mapState,
+    );
+  }
 
-          switch (stateCode) {
-            case 1:
-              return ChargingState.charging;
-            case 2:
-              return ChargingState.discharging;
-            case 3:
-              return ChargingState.full;
-            case 4:
-              return ChargingState.connectedNotCharging;
-            case 0:
-            default:
-              return ChargingState.unknown;
-          }
-        });
+  static ChargingState _mapState(dynamic stateCode) {
+    if (stateCode is! int) {
+      throw Exception('Invalid battery state type: ${stateCode.runtimeType}');
+    }
+    switch (stateCode) {
+      case 1:
+        return ChargingState.charging;
+      case 2:
+        return ChargingState.discharging;
+      case 3:
+        return ChargingState.full;
+      case 4:
+        return ChargingState.connectedNotCharging;
+      case 0:
+      default:
+        return ChargingState.unknown;
+    }
   }
 }

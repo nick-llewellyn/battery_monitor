@@ -39,8 +39,16 @@ class BatterySaveModeChannel {
     'com.nllewellyn.battery_monitor/battery_save_mode',
   );
 
+  /// Process-wide cache of the mapped platform broadcast stream.
+  ///
+  /// Calling [EventChannel.receiveBroadcastStream] more than once for
+  /// the same channel name re-registers the binary-messenger handler
+  /// and silences earlier subscribers, so every wrapper instance backed
+  /// by the real [EventChannel] must share the same mapped stream.
+  static Stream<bool>? _sharedPlatformStream;
+
   final Stream<dynamic>? _eventStream;
-  Stream<bool>? _onBatterySaveModeChanged;
+  Stream<bool>? _injectedStream;
 
   /// Stream of battery save mode state changes.
   ///
@@ -53,27 +61,32 @@ class BatterySaveModeChannel {
   /// **Android:** Fires when Battery Saver is toggled in
   /// Settings > Battery.
   ///
-  /// The mapped broadcast stream is cached per channel instance, so
-  /// repeated reads of this getter -- and multiple subscribers -- share
-  /// the same underlying [EventChannel.receiveBroadcastStream]
-  /// subscription. Without that caching, every read would re-register
-  /// the binary messenger handler and silence earlier subscribers.
+  /// The mapped broadcast stream is shared process-wide for the
+  /// production path, so any number of [BatterySaveModeChannel]
+  /// instances (and any number of `BatteryProvider`s constructed from
+  /// them) all observe the same underlying
+  /// [EventChannel.receiveBroadcastStream] subscription. When an
+  /// `eventStream` is injected for testing, the cache is per-instance
+  /// so each test fixture stays isolated.
   ///
   /// **Error handling:**
   /// - Throws an [Exception] if the platform returns an invalid type.
   /// - Platform errors are propagated through the stream's error
   ///   channel.
   Stream<bool> get onBatterySaveModeChanged {
-    return _onBatterySaveModeChanged ??=
-        (_eventStream ?? _eventChannel.receiveBroadcastStream()).map((
-          dynamic enabled,
-        ) {
-          if (enabled is bool) {
-            return enabled;
-          }
-          throw Exception(
-            'Invalid battery save mode type: ${enabled.runtimeType}',
-          );
-        });
+    final injected = _eventStream;
+    if (injected != null) {
+      return _injectedStream ??= injected.map(_mapSaveMode);
+    }
+    return _sharedPlatformStream ??= _eventChannel.receiveBroadcastStream().map(
+      _mapSaveMode,
+    );
+  }
+
+  static bool _mapSaveMode(dynamic enabled) {
+    if (enabled is bool) {
+      return enabled;
+    }
+    throw Exception('Invalid battery save mode type: ${enabled.runtimeType}');
   }
 }
