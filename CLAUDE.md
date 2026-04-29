@@ -60,9 +60,6 @@ fvm use 3.41.7 --force
 fvm flutter pub get
 (cd example && fvm flutter pub get)
 
-# Regenerate freezed sources for `BatteryInfo`
-fvm dart run build_runner build --delete-conflicting-outputs
-
 # Quality gates (mirrors CI)
 fvm dart format --output=none --set-exit-if-changed .
 fvm dart analyze
@@ -99,10 +96,8 @@ specs and DI reference.
   (`public_member_api_docs: true` in `analysis_options.yaml`).
 - Strict-mode analyzer flags are on (`strict-casts`, `strict-inference`,
   `strict-raw-types`).
-- Never edit `lib/src/models/battery_info.freezed.dart` by hand --
-  rerun `dart run build_runner build --delete-conflicting-outputs`.
 - Channel names are namespaced under
-  `dev.nicklewellyn.battery_monitor/`. Both sides of the wire (native
+  `com.nllewellyn.battery_monitor/`. Both sides of the wire (native
   registration + Dart wrapper) must move together when a name
   changes.
 - Tests use `package:checks` for assertions and inject

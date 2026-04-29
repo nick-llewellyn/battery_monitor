@@ -1,0 +1,11 @@
+include: package:flutter_lints/flutter.yaml
+
+# The example app intentionally uses a looser ruleset than the package
+# itself: no public_member_api_docs requirement (it is not a published
+# library), and no avoid_print constraint (a runnable demo is allowed
+# to log to stdout). Strict-mode analyzer flags still apply.
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true

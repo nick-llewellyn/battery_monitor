@@ -1,7 +1,0 @@
-{
-  "database": "dolt",
-  "backend": "dolt",
-  "dolt_mode": "embedded",
-  "dolt_database": "battery_monitor",
-  "project_id": "b8b721f5-a41c-436f-acb6-5e1cdd63e567"
-}

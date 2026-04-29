@@ -1,0 +1,116 @@
+# Channel architecture
+
+`battery_monitor` ships three independent platform EventChannels and
+two thin Dart layers on top:
+
+```
+┌───────────────────────────────────────────────────────────┐
+│                       Flutter (Dart)                      │
+├───────────────────────────────────────────────────────────┤
+│  BatteryState  -> Signal<BatteryInfo?>                    │
+│       │ effect                                            │
+│  BatteryProvider                                          │
+│    ├─ Signal<double>          batteryLevel                │
+│    ├─ Signal<ChargingState>   chargingState               │
+│    ├─ Signal<bool>            batterySaveMode             │
+│    └─ ValueNotifier<List<BatteryError>> batteryErrors     │
+│                                                           │
+│  BatteryLevelChannel | BatteryStateChannel | …SaveModeCh. │
+└───────────────────────────────────────────────────────────┘
+                            │
+                            │ EventChannels
+        ┌───────────────────┴───────────────────┐
+        │                                       │
+┌───────▼────────┐                    ┌─────────▼─────────┐
+│    Android     │                    │        iOS        │
+├────────────────┤                    ├───────────────────┤
+│ BatteryMonitor │                    │ BatteryMonitor    │
+│ Plugin         │                    │ Plugin            │
+│   ├─ Level     │                    │   ├─ Level        │
+│   ├─ State     │                    │   ├─ State        │
+│   └─ SaveMode  │                    │   └─ SaveMode     │
+└────────────────┘                    └───────────────────┘
+```
+
+## Channel specifications
+
+### Battery level
+
+- **Channel:** `com.nllewellyn.battery_monitor/battery_level`
+- **Payload:** `int` (0..100, or `-1` if unknown)
+- **Android:** `Intent.ACTION_BATTERY_CHANGED` sticky broadcast.
+  Percentage computed as `(EXTRA_LEVEL * 100) / EXTRA_SCALE`.
+  `registerReceiver(null, filter)` returns the cached intent so the
+  initial value is delivered synchronously on subscription.
+- **iOS:** `UIDeviceBatteryLevelDidChangeNotification`. Fires on every
+  1% change (iOS 8+). `UIDevice.current.batteryLevel` returns a float
+  in `0.0..1.0`, or `-1.0` when unknown (Simulator, or monitoring
+  disabled). The handler converts to a percentage as a `Double`.
+  Hardware-level granularity is 5%, so values come through as
+  multiples of 5 (e.g., 70.0, 75.0).
+
+### Battery state
+
+- **Channel:** `com.nllewellyn.battery_monitor/battery_state`
+- **Payload:** `int` (0..4)
+- **Android:** `Intent.ACTION_BATTERY_CHANGED` -> `EXTRA_STATUS`
+  mapped as `CHARGING -> 1`, `DISCHARGING -> 2`, `FULL -> 3`,
+  `NOT_CHARGING -> 4`, anything else -> 0.
+- **iOS:** `UIDevice.batteryStateDidChangeNotification`.
+  `UIDevice.batteryState` mapped as `.charging -> 1`,
+  `.unplugged -> 2`, `.full -> 3`, `.unknown -> 0`.
+  iOS does not surface a `connectedNotCharging` distinction.
+
+### Battery save mode
+
+- **Channel:** `com.nllewellyn.battery_monitor/battery_save_mode`
+- **Payload:** `bool`
+- **Android:** `PowerManager.ACTION_POWER_SAVE_MODE_CHANGED` broadcast,
+  current value read from `PowerManager.isPowerSaveMode`. Requires
+  API 21+.
+- **iOS:** `NSProcessInfoPowerStateDidChange`. Current value read from
+  `ProcessInfo.processInfo.isLowPowerModeEnabled`. Requires iOS 9.0+
+  (always reports `false` on older versions).
+
+## Dependency injection for testing
+
+All three channel classes and `BatteryProvider` accept optional
+constructor parameters. When omitted, real platform EventChannels are
+used. When provided, the injected stream replaces the broadcast
+source so unit tests can drive arbitrary values synchronously without
+binding to native code.
+
+```dart
+final levelCtrl = StreamController<dynamic>.broadcast();
+final stateCtrl = StreamController<dynamic>.broadcast();
+final saveModeCtrl = StreamController<dynamic>.broadcast();
+
+final provider = BatteryProvider(
+  batteryLevelChannel: BatteryLevelChannel(eventStream: levelCtrl.stream),
+  batteryStateChannel: BatteryStateChannel(eventStream: stateCtrl.stream),
+  batterySaveModeChannel: BatterySaveModeChannel(
+    eventStream: saveModeCtrl.stream,
+  ),
+);
+
+levelCtrl.add(75);
+await Future<void>.delayed(Duration.zero);
+// provider.batteryLevel.value == 75.0
+```
+
+## Resource management
+
+Each native handler unregisters its receiver / observer in `onCancel`
+so subscriptions left dangling do not leak. The Dart `BatteryProvider`
+cancels its three `StreamSubscription`s and disposes its
+`batteryErrors` `ValueNotifier` in `dispose`. `BatteryState.dispose`
+forwards to the underlying provider.
+
+## Error handling
+
+- Invalid channel payload types throw an `Exception` with a descriptive
+  message; the error propagates through the stream's error channel.
+- `BatteryProvider` catches per-channel errors, logs them via
+  `dart:developer.log`, and appends them to a bounded ring buffer
+  (`batteryErrors`, capped at 10 most-recent entries). `clearErrors`
+  empties the buffer.

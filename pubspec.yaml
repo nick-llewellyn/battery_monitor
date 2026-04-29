@@ -1,0 +1,55 @@
+name: battery_monitor
+description: >-
+  Event-driven battery level, charging state, and power-save mode for
+  Flutter apps. Native EventChannels on Android and iOS, reactive
+  signals API, dependency-injectable for testing without a device.
+version: 0.1.0
+homepage: https://github.com/nick-llewellyn/battery_monitor
+repository: https://github.com/nick-llewellyn/battery_monitor
+issue_tracker: https://github.com/nick-llewellyn/battery_monitor/issues
+
+topics:
+  - battery
+  - power
+  - hardware
+  - platform-channels
+
+# Explicit platform allow-list. The plugin ships native EventChannel
+# implementations for Android (Kotlin, BroadcastReceiver-backed) and
+# iOS (Swift, NotificationCenter-backed). Other platforms have no
+# equivalent battery API surface today, so the package is not
+# advertised for them.
+platforms:
+  android:
+  ios:
+
+environment:
+  sdk: ^3.11.5
+  flutter: '>=3.41.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Reactive primitive consumed by `BatteryProvider` and `BatteryState`.
+  # Pulled in as a public dependency because the package exposes
+  # `Signal<T>` values directly on its API surface, so consumers must
+  # share the same major.
+  signals: ^6.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  # Used in the unit suite for richer assertions on stream output and
+  # error variants. Kept under dev_dependencies so consumers do not
+  # transitively depend on the testing matchers package.
+  checks: ^0.3.1
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.nllewellyn.battery_monitor
+        pluginClass: BatteryMonitorPlugin
+      ios:
+        pluginClass: BatteryMonitorPlugin
