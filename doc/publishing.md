@@ -25,18 +25,7 @@ conventions* section.
 Resolution: flip the repo to public before the first publish, or change
 the three URLs in `pubspec.yaml` to a public mirror.
 
-### 2. Package description length
-
-`pubspec.yaml` currently has a 198-character `description`. Pana enforces
-a 60–180 character window (search engines truncate beyond ~180). Trim to
-fit; one acceptable form:
-
-> Event-driven battery level, charging state, and power-save mode for
-> Flutter. Native EventChannels on Android and iOS, ValueListenable API.
-
-(176 chars.)
-
-### 3. Pub.dev trusted publisher
+### 2. Pub.dev trusted publisher
 
 CI-8 publishes via OIDC, not a long-lived token. Before the release
 workflow can succeed:
@@ -63,6 +52,7 @@ once a package exists.
 | Topics declared | done | `pubspec.yaml` lists `battery`, `power`, `hardware`, `platform-channels`. |
 | Static analysis | done | Pana scores 50/50. |
 | Up-to-date dependencies | done | Pana scores 40/40. |
+| Description length | done | Trimmed to 164 chars (60–180 window). |
 
 ## Known score leaks (non-blocking)
 
@@ -108,7 +98,7 @@ git push origin main --tags
 ```
 
 After this completes once, configure trusted publisher (see *Blockers
-§3*) and subsequent releases run from the CI-8 workflow on tag push.
+§2*) and subsequent releases run from the CI-8 workflow on tag push.
 
 ## When to re-run pana locally
 
