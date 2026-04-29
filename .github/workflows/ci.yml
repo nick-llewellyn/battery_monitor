@@ -15,17 +15,30 @@ on:
       - '.gitignore'
   workflow_dispatch:
 
-# Cancel superseded matrix runs on the same ref (typically a force-push to
-# an open PR). Pure cost optimization; has no functional effect on a
-# linear push history. The group is keyed on workflow + ref so push to
-# main and pull_request runs against the same head do not cancel each
-# other.
+# Default to read-only GITHUB_TOKEN for the whole workflow; jobs that
+# need to mint extra credentials (Codecov OIDC) opt in explicitly.
+permissions:
+  contents: read
+
+# Cancel superseded matrix runs on PR branches (typically a force-push to
+# an open PR). Post-merge runs on `main` always complete: the merge SHA's
+# tree can differ from any PR head, and cancelling them would erode the
+# "main is green" guarantee that branch protection is built around.
+# Group is keyed on workflow + ref so push and pull_request runs land in
+# different groups (`refs/heads/main` vs `refs/pull/N/merge`).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
+    # `id-token: write` is required for the Codecov OIDC upload step
+    # below. Scoped to this job rather than workflow-wide so the iOS
+    # and pana jobs (which do not upload coverage) keep the read-only
+    # default.
+    permissions:
+      contents: read
+      id-token: write
     # Matrix exercises both the declared SDK floor (3.35.0, the first
     # stable release shipping Dart 3.9 -- which is the minimum the
     # resolved lockfile actually requires) and the .fvmrc-pinned
@@ -108,13 +121,17 @@ jobs:
       # Coverage shipped two ways:
       #   1. Workflow artifact for direct download / local debugging
       #      without depending on a third-party dashboard.
-      #   2. Codecov for diff coverage and PR comments. Codecov v4
-      #      requires a repository upload token even on public repos
-      #      when the target branch is protected; the token is set
-      #      via the CODECOV_TOKEN secret (configured in repo
-      #      settings, not committed). `fail_ci_if_error: false`
-      #      keeps Codecov outages from breaking the build (third-
-      #      party SLO is not in our CI critical path).
+      #   2. Codecov for diff coverage and PR comments. Uses OIDC
+      #      tokenless authentication (codecov-action v6+ on public
+      #      repos): the runner mints a short-lived id-token via
+      #      `id-token: write` on this job, Codecov validates it
+      #      against GitHub's OIDC issuer, no shared secret required.
+      #      Critically, this works on PRs from forks -- repository
+      #      secrets are withheld from forks by design, so the prior
+      #      `secrets.CODECOV_TOKEN` flow silently no-op'd for
+      #      external contributors. `fail_ci_if_error: false` keeps
+      #      Codecov outages from breaking the build (third-party SLO
+      #      is not in our CI critical path).
       - name: Upload coverage artifact
         if: matrix.flutter == '3.41.7'
         uses: actions/upload-artifact@v7
@@ -129,7 +146,7 @@ jobs:
         uses: codecov/codecov-action@v6
         with:
           files: coverage/lcov.info
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
           fail_ci_if_error: false
 
       - name: Resolve example dependencies
