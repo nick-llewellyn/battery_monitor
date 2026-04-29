@@ -71,16 +71,17 @@ fvm flutter test
 
 `battery_monitor` is a Flutter plugin exposing battery level, charging
 state, and Low Power Mode via three native EventChannels (Android +
-iOS) lifted into reactive `signals` on the Dart side.
+iOS) surfaced as `ValueListenable`s on the Dart side.
 
 - `lib/src/platform/` -- thin EventChannel wrappers, one per data
   stream. Each accepts a constructor-injected `Stream<dynamic>` for
   unit testing without a platform binding.
 - `lib/src/battery_provider.dart` -- subscribes to the three channels
-  and surfaces them as separate `Signal`s plus a bounded
+  and surfaces them as separate `ValueListenable`s plus a bounded
   `ValueNotifier<List<BatteryError>>` for diagnostics.
-- `lib/src/battery_state.dart` -- composes the provider's three signals
-  into one `Signal<BatteryInfo?>` via a `signals` `effect`.
+- `lib/src/battery_state.dart` -- composes the provider's three
+  listenables into one `ValueListenable<BatteryInfo?>` by registering
+  a listener that recomputes the snapshot on every change.
 - `android/src/.../BatteryMonitorPlugin.kt` and
   `ios/Classes/BatteryMonitorPlugin.swift` register the three
   EventChannels and wire them to per-channel stream handlers backed by
@@ -91,7 +92,12 @@ specs and DI reference.
 
 ## Conventions & Patterns
 
-- Pin: Flutter 3.41.7 / Dart 3.11.5 via FVM (`.fvmrc`).
+- Declared SDK floor: Flutter `>=3.35.0 <4.0.0` / Dart `^3.9.0` in
+  `pubspec.yaml`. CI matrix exercises both the floor and the pin.
+  The 3.35 / 3.9 floor is dictated by the resolved lockfile (which
+  pulls Dart `>=3.9.0-0` transitively) and by `flutter_lints ^6.0.0`
+  (via `lints ^6.0.0`, which requires Dart `^3.8.0`).
+- Development pin: Flutter 3.41.7 / Dart 3.11.5 via FVM (`.fvmrc`).
 - All public APIs require dartdoc comments
   (`public_member_api_docs: true` in `analysis_options.yaml`).
 - Strict-mode analyzer flags are on (`strict-casts`, `strict-inference`,

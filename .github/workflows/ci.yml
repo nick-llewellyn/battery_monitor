@@ -17,18 +17,18 @@ on:
 
 jobs:
   build:
-    # Matrix exercises the pinned current version (3.41.7, matches
-    # .fvmrc). Format check runs only on the pinned version because
-    # `dart format` output can shift between Dart minors and we don't
-    # want spurious failures across the matrix. Add older Flutter
-    # versions to the matrix here once the package's declared SDK
-    # floor is widened.
+    # Matrix exercises both the declared SDK floor (3.35.0, the first
+    # stable release shipping Dart 3.9 -- which is the minimum the
+    # resolved lockfile actually requires) and the .fvmrc-pinned
+    # current version (3.41.7). Format check runs only on the pinned
+    # version because `dart format` output shifts between Dart minors
+    # and we do not want spurious failures across the matrix.
     name: Format / analyze / Dart tests (Flutter ${{ matrix.flutter }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        flutter: ['3.41.7']
+        flutter: ['3.35.0', '3.41.7']
     steps:
       - name: Checkout code
         uses: actions/checkout@v5

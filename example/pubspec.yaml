@@ -7,8 +7,8 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.5
-  flutter: 3.41.7
+  sdk: ^3.9.0
+  flutter: '>=3.35.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -16,9 +16,6 @@ dependencies:
   battery_monitor:
     path: ../
   cupertino_icons: ^1.0.8
-  # Pulled in by the example app -- mirrors the package surface so the
-  # demo can read `Signal<T>.value` and rebuild via `Watch` widgets.
-  signals: ^6.2.0
 
 dev_dependencies:
   flutter_test:

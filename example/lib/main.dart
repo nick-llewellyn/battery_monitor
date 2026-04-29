@@ -1,14 +1,13 @@
 // Minimal `package:battery_monitor` showcase.
 //
 // Construct a single `BatteryProvider`, wrap it in a `BatteryState`,
-// then bind the composed `Signal<BatteryInfo?>` to a `Watch` widget so
-// the UI rebuilds on every native EventChannel emission. There is no
-// timer or polling loop -- updates flow from the platform notification
-// straight into the widget tree.
+// then bind the composed `ValueListenable<BatteryInfo?>` to a
+// `ValueListenableBuilder` so the UI rebuilds on every native
+// EventChannel emission. There is no timer or polling loop -- updates
+// flow from the platform notification straight into the widget tree.
 
 import 'package:battery_monitor/battery_monitor.dart';
 import 'package:flutter/material.dart';
-import 'package:signals/signals_flutter.dart';
 
 void main() {
   runApp(const BatteryMonitorExampleApp());
@@ -60,49 +59,56 @@ class _HomePageState extends State<_HomePage> {
       appBar: AppBar(title: const Text('battery_monitor example')),
       body: Padding(
         padding: const EdgeInsets.all(24),
-        child: Watch((context) {
-          final info = _state.batteryInfo.value;
-          if (info == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _Tile(label: 'Level', value: '${info.level.toStringAsFixed(0)}%'),
-              const SizedBox(height: 12),
-              _Tile(label: 'Charging state', value: info.chargingState.name),
-              const SizedBox(height: 12),
-              _Tile(
-                label: 'Battery save mode',
-                value: info.isInBatterySaveMode ? 'on' : 'off',
-              ),
-              const Spacer(),
-              Watch((context) {
-                final errors = _provider.batteryErrors.value;
-                if (errors.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Recent errors (${errors.length})',
-                          style: Theme.of(context).textTheme.titleSmall,
+        child: ValueListenableBuilder<BatteryInfo?>(
+          valueListenable: _state.batteryInfo,
+          builder: (context, info, _) {
+            if (info == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _Tile(
+                  label: 'Level',
+                  value: '${info.level.toStringAsFixed(0)}%',
+                ),
+                const SizedBox(height: 12),
+                _Tile(label: 'Charging state', value: info.chargingState.name),
+                const SizedBox(height: 12),
+                _Tile(
+                  label: 'Battery save mode',
+                  value: info.isInBatterySaveMode ? 'on' : 'off',
+                ),
+                const Spacer(),
+                ValueListenableBuilder<List<BatteryError>>(
+                  valueListenable: _provider.batteryErrors,
+                  builder: (context, errors, _) {
+                    if (errors.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Recent errors (${errors.length})',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 8),
+                            for (final error in errors.take(3))
+                              Text(error.toString()),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        for (final error in errors.take(3))
-                          Text(error.toString()),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            ],
-          );
-        }),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

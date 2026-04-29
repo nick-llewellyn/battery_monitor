@@ -7,7 +7,7 @@
 ---
 
 Event-driven battery monitoring for Flutter. Battery level, charging
-state, and Low Power Mode delivered as reactive signals via native
+state, and Low Power Mode delivered as `ValueListenable`s via native
 EventChannels on Android and iOS -- no polling on either side.
 
 ## Why another battery package?
@@ -29,8 +29,9 @@ directly onto the underlying OS notifications:
   so the initial value is delivered synchronously on subscription).
 - Android Battery Saver rides `PowerManager.ACTION_POWER_SAVE_MODE_CHANGED`.
 
-The Dart layer lifts those streams into [`signals`][signals] so the UI
-can consume them with a `Watch` widget, no rebuild plumbing required.
+The Dart layer lifts those streams into `ValueListenable`s so the UI
+can consume them with a `ValueListenableBuilder`, no third-party
+reactive dependency required.
 
 ## Supported platforms
 
@@ -38,6 +39,12 @@ can consume them with a `Watch` widget, no rebuild plumbing required.
 |----------|---------|
 | Android  | API 21+ |
 | iOS      | 13.0+   |
+| Flutter  | 3.35.0+ |
+| Dart     | 3.9.0+  |
+
+CI exercises both the declared SDK floor (Flutter 3.35.0 / Dart 3.9)
+and the version pinned in [`.fvmrc`](.fvmrc) (Flutter 3.41.7 / Dart
+3.11.5) on every push.
 
 ## Install
 
@@ -49,21 +56,23 @@ flutter pub add battery_monitor
 
 ```dart
 import 'package:battery_monitor/battery_monitor.dart';
-import 'package:signals/signals_flutter.dart';
+import 'package:flutter/widgets.dart';
 
 final provider = BatteryProvider(); // subscribes to native channels
-final state = BatteryState(provider); // composes Signal<BatteryInfo?>
+final state = BatteryState(provider); // composes ValueListenable<BatteryInfo?>
 
 // Bind to UI:
-Watch((context) {
-  final info = state.batteryInfo.value;
-  if (info == null) return const SizedBox.shrink();
-  return Text(
-    'level=${info.level}% '
-    'state=${info.chargingState.name} '
-    'saveMode=${info.isInBatterySaveMode}',
-  );
-});
+ValueListenableBuilder<BatteryInfo?>(
+  valueListenable: state.batteryInfo,
+  builder: (context, info, _) {
+    if (info == null) return const SizedBox.shrink();
+    return Text(
+      'level=${info.level}% '
+      'state=${info.chargingState.name} '
+      'saveMode=${info.isInBatterySaveMode}',
+    );
+  },
+);
 
 // When done:
 state.dispose(); // also disposes the underlying provider
@@ -94,12 +103,14 @@ state.dispose(); // also disposes the underlying provider
 ### Reactive composition
 
 - **`BatteryProvider`** -- subscribes to all three channels and exposes
-  `Signal<double> batteryLevel`, `Signal<ChargingState> chargingState`,
-  `Signal<bool> batterySaveMode`, plus a bounded
+  `ValueListenable<double> batteryLevel`,
+  `ValueListenable<ChargingState> chargingState`,
+  `ValueListenable<bool> batterySaveMode`, plus a bounded
   `ValueNotifier<List<BatteryError>> batteryErrors` (last 10 entries,
   most recent first).
-- **`BatteryState`** -- composes the three provider signals into one
-  `Signal<BatteryInfo?> batteryInfo` via a `signals` `effect`.
+- **`BatteryState`** -- composes the three provider listenables into
+  one `ValueListenable<BatteryInfo?> batteryInfo`, recomputed whenever
+  any of the underlying values change.
 
 ## Testing without a device
 
@@ -144,5 +155,3 @@ provider composition, and error-buffer behaviour.
 ## License
 
 [MIT](LICENSE) (c) 2026 Nicholas Llewellyn.
-
-[signals]: https://pub.dev/packages/signals

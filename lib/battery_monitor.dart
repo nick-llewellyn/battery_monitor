@@ -1,7 +1,7 @@
 /// Event-driven battery monitoring for Flutter.
 ///
 /// Exposes battery level, charging state, and power-save mode as
-/// reactive [Signal]s backed by native EventChannels on Android and
+/// `ValueListenable`s backed by native EventChannels on Android and
 /// iOS. All updates are push-based -- there is no polling loop in
 /// either the Dart layer or the native handlers.
 ///

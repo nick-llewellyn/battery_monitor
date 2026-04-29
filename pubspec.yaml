@@ -1,8 +1,8 @@
 name: battery_monitor
 description: >-
   Event-driven battery level, charging state, and power-save mode for
-  Flutter apps. Native EventChannels on Android and iOS, reactive
-  signals API, dependency-injectable for testing without a device.
+  Flutter apps. Native EventChannels on Android and iOS, ValueListenable
+  API, dependency-injectable for testing without a device.
 version: 0.1.0
 homepage: https://github.com/nick-llewellyn/battery_monitor
 repository: https://github.com/nick-llewellyn/battery_monitor
@@ -23,18 +23,20 @@ platforms:
   android:
   ios:
 
+# Supported environment range. The package only uses standard Flutter
+# primitives (`ValueListenable`, `EventChannel`) plus `Object.hash`
+# and enum/switch syntax. The floor is set at Flutter 3.35.0 / Dart
+# 3.9.0 -- the first stable release shipping Dart 3.9, which is the
+# minimum the resolved lockfile (and `flutter_lints ^6.0.0` via its
+# `lints ^6.0.0` transitive) actually requires. CI exercises both the
+# floor and the .fvmrc-pinned current version (3.41.7).
 environment:
-  sdk: ^3.11.5
-  flutter: '>=3.41.0 <4.0.0'
+  sdk: ^3.9.0
+  flutter: '>=3.35.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  # Reactive primitive consumed by `BatteryProvider` and `BatteryState`.
-  # Pulled in as a public dependency because the package exposes
-  # `Signal<T>` values directly on its API surface, so consumers must
-  # share the same major.
-  signals: ^6.2.0
 
 dev_dependencies:
   flutter_test:

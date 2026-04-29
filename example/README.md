@@ -3,9 +3,9 @@
 Showcase app for the [`battery_monitor`](../) Flutter plugin.
 
 Builds a single `BatteryProvider` / `BatteryState` pair, binds the
-composed `Signal<BatteryInfo?>` to `Watch` widgets, and renders the
-live battery level, charging state, and Low Power Mode flag straight
-from the native EventChannels.
+composed `ValueListenable<BatteryInfo?>` to `ValueListenableBuilder`s,
+and renders the live battery level, charging state, and Low Power Mode
+flag straight from the native EventChannels.
 
 ## Run
 

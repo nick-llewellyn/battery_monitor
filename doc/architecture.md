@@ -7,12 +7,12 @@ two thin Dart layers on top:
 ┌───────────────────────────────────────────────────────────┐
 │                       Flutter (Dart)                      │
 ├───────────────────────────────────────────────────────────┤
-│  BatteryState  -> Signal<BatteryInfo?>                    │
-│       │ effect                                            │
+│  BatteryState  -> ValueListenable<BatteryInfo?>           │
+│       │ listener-driven recompose                         │
 │  BatteryProvider                                          │
-│    ├─ Signal<double>          batteryLevel                │
-│    ├─ Signal<ChargingState>   chargingState               │
-│    ├─ Signal<bool>            batterySaveMode             │
+│    ├─ ValueListenable<double>          batteryLevel       │
+│    ├─ ValueListenable<ChargingState>   chargingState      │
+│    ├─ ValueListenable<bool>            batterySaveMode    │
 │    └─ ValueNotifier<List<BatteryError>> batteryErrors     │
 │                                                           │
 │  BatteryLevelChannel | BatteryStateChannel | …SaveModeCh. │
@@ -102,9 +102,11 @@ await Future<void>.delayed(Duration.zero);
 
 Each native handler unregisters its receiver / observer in `onCancel`
 so subscriptions left dangling do not leak. The Dart `BatteryProvider`
-cancels its three `StreamSubscription`s and disposes its
-`batteryErrors` `ValueNotifier` in `dispose`. `BatteryState.dispose`
-forwards to the underlying provider.
+cancels its three `StreamSubscription`s and disposes its four
+`ValueNotifier`s (the three value notifiers backing the public
+`ValueListenable`s plus `batteryErrors`) in `dispose`.
+`BatteryState.dispose` detaches its listeners, disposes its internal
+`ValueNotifier`, and forwards to the underlying provider.
 
 ## Error handling
 

@@ -6,7 +6,6 @@ import 'package:battery_monitor/src/platform/battery_level_channel.dart';
 import 'package:battery_monitor/src/platform/battery_save_mode_channel.dart';
 import 'package:battery_monitor/src/platform/battery_state_channel.dart';
 import 'package:flutter/foundation.dart';
-import 'package:signals/signals.dart';
 
 /// Captures a single battery error observed on one of the underlying
 /// channels.
@@ -45,13 +44,15 @@ class BatteryError {
 /// wrappers ([BatteryLevelChannel], [BatteryStateChannel],
 /// [BatterySaveModeChannel]).
 ///
-/// Subscribes on construction and keeps the three signals updated
-/// from the native streams. Construction-time channel injection
-/// allows unit tests to drive the provider with synthetic
-/// [StreamController]s instead of a platform binding.
+/// Subscribes on construction and exposes the latest values through
+/// [ValueListenable]s so consumers can bind them to
+/// [ValueListenableBuilder] without any third-party reactive
+/// framework. Construction-time channel injection allows unit tests
+/// to drive the provider with synthetic [StreamController]s instead
+/// of a platform binding.
 ///
 /// Always call [dispose] to release the native subscriptions and the
-/// internal [batteryErrors] [ValueNotifier].
+/// underlying notifiers.
 class BatteryProvider {
   /// Creates a battery provider.
   ///
@@ -75,17 +76,20 @@ class BatteryProvider {
   final BatteryStateChannel _batteryStateChannel;
   final BatterySaveModeChannel _batterySaveModeChannel;
 
+  final ValueNotifier<double> _batteryLevel = ValueNotifier<double>(0);
+  final ValueNotifier<ChargingState> _chargingState =
+      ValueNotifier<ChargingState>(ChargingState.unknown);
+  final ValueNotifier<bool> _batterySaveMode = ValueNotifier<bool>(false);
+
   /// Latest battery percentage (0..100), updated as the native
   /// channel emits.
-  final Signal<double> batteryLevel = signal<double>(0);
+  ValueListenable<double> get batteryLevel => _batteryLevel;
 
   /// Latest charging state, updated as the native channel emits.
-  final Signal<ChargingState> chargingState = signal<ChargingState>(
-    ChargingState.unknown,
-  );
+  ValueListenable<ChargingState> get chargingState => _chargingState;
 
   /// Latest power-save flag, updated as the native channel emits.
-  final Signal<bool> batterySaveMode = signal<bool>(false);
+  ValueListenable<bool> get batterySaveMode => _batterySaveMode;
 
   /// Bounded log of recent channel errors (most recent first, capped
   /// at 10 entries). Cleared via [clearErrors].
@@ -103,7 +107,7 @@ class BatteryProvider {
         .listen(
           (level) {
             developer.log('Battery level: $level%', name: 'BatteryProvider');
-            batteryLevel.value = level.toDouble();
+            _batteryLevel.value = level.toDouble();
           },
           onError: (Object error, StackTrace stackTrace) {
             _addError('Battery Level', error, stackTrace);
@@ -114,7 +118,7 @@ class BatteryProvider {
         .listen(
           (state) {
             developer.log('Battery state: $state', name: 'BatteryProvider');
-            chargingState.value = state;
+            _chargingState.value = state;
           },
           onError: (Object error, StackTrace stackTrace) {
             _addError('Battery State', error, stackTrace);
@@ -129,7 +133,7 @@ class BatteryProvider {
               'Battery save mode: $isEnabled',
               name: 'BatteryProvider',
             );
-            batterySaveMode.value = isEnabled;
+            _batterySaveMode.value = isEnabled;
           },
           onError: (Object error, StackTrace stackTrace) {
             _addError('Battery Save Mode', error, stackTrace);
@@ -166,11 +170,14 @@ class BatteryProvider {
   }
 
   /// Cancels the three native subscriptions and disposes the internal
-  /// [batteryErrors] notifier. Idempotent.
+  /// notifiers. Idempotent.
   void dispose() {
     _batteryLevelSubscription?.cancel();
     _batteryStateSubscription?.cancel();
     _batterySaveModeSubscription?.cancel();
+    _batteryLevel.dispose();
+    _chargingState.dispose();
+    _batterySaveMode.dispose();
     batteryErrors.dispose();
   }
 }

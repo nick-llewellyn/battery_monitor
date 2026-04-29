@@ -7,14 +7,16 @@ Initial release.
 ### Public API
 
 - `BatteryProvider` -- subscribes to three native EventChannels and
-  exposes `Signal<double> batteryLevel`, `Signal<ChargingState>
-  chargingState`, `Signal<bool> batterySaveMode`, plus a bounded
+  exposes `ValueListenable<double> batteryLevel`,
+  `ValueListenable<ChargingState> chargingState`,
+  `ValueListenable<bool> batterySaveMode`, plus a bounded
   `ValueNotifier<List<BatteryError>> batteryErrors` for diagnostic
   surfacing. Construction-time channel injection allows unit tests to
   drive the provider without a platform binding.
-- `BatteryState` -- composes the three provider signals into one
-  `Signal<BatteryInfo?> batteryInfo` via a `signals` `effect`. Takes
-  ownership of the underlying `BatteryProvider` for `dispose`.
+- `BatteryState` -- composes the three provider listenables into one
+  `ValueListenable<BatteryInfo?> batteryInfo`, recomputed whenever any
+  of the underlying values change. Takes ownership of the underlying
+  `BatteryProvider` for `dispose`.
 - `BatteryInfo` -- immutable record carrying `level`, `chargingState`,
   and `isInBatterySaveMode`, with hand-written `==`, `hashCode`,
   `toString`, and `copyWith`. Asserts the `0..100` invariant on
