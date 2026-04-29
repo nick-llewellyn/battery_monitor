@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'battery_monitor'
-  s.version          = '0.1.0'
+  s.version          = '1.0.0'
   s.summary          = 'Event-driven battery monitoring for Flutter on Android and iOS.'
   s.description      = <<-DESC
 Battery level, charging state, and Low Power Mode delivered via native
