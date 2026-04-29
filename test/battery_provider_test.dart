@@ -165,6 +165,15 @@ void main() {
       );
     });
 
+    tearDownAll(() {
+      messenger.setMockMethodCallHandler(const MethodChannel(levelName), null);
+      messenger.setMockMethodCallHandler(const MethodChannel(stateName), null);
+      messenger.setMockMethodCallHandler(
+        const MethodChannel(saveModeName),
+        null,
+      );
+    });
+
     test('both providers observe a single simulated level event', () async {
       final providerA = BatteryProvider();
       final providerB = BatteryProvider();

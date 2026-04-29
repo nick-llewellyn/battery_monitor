@@ -39,7 +39,14 @@ class BatteryLevelChannel {
     'com.nllewellyn.battery_monitor/battery_level',
   );
 
-  /// Process-wide cache of the mapped platform broadcast stream.
+  /// Isolate-wide cache of the mapped platform broadcast stream.
+  ///
+  /// `static` fields in Dart are scoped to the enclosing isolate, so
+  /// this cache is shared across every [BatteryLevelChannel] instance
+  /// constructed in the main Dart isolate (which is where Flutter's
+  /// platform channels are wired). Spawned isolates that import this
+  /// library would each get their own cache, but they cannot reach the
+  /// platform channel either.
   ///
   /// Calling [EventChannel.receiveBroadcastStream] more than once for
   /// the same channel name re-registers the binary-messenger handler
@@ -61,7 +68,7 @@ class BatteryLevelChannel {
   /// extras missing) are dropped at the native layer and never reach
   /// this stream.
   ///
-  /// The mapped broadcast stream is shared process-wide for the
+  /// The mapped broadcast stream is shared isolate-wide for the
   /// production path, so any number of [BatteryLevelChannel] instances
   /// (and any number of `BatteryProvider`s constructed from them) all
   /// observe the same underlying

@@ -113,14 +113,16 @@ cancels its three `StreamSubscription`s and disposes its four
 `ValueNotifier`, and forwards to the underlying provider.
 
 The three channel wrappers share their mapped platform broadcast
-stream process-wide via a static cache. The first read of
+stream isolate-wide via a `static` cache (Dart `static` fields are
+scoped to the enclosing isolate, and Flutter's platform channels only
+work from the main Dart isolate). The first read of
 `onBatteryLevelChanged` / `onBatteryStateChanged` /
 `onBatterySaveModeChanged` (on any instance, in any
 `BatteryProvider`) calls `EventChannel.receiveBroadcastStream()`
 once, maps it to the typed stream, and every subsequent read on any
 instance returns the same `Stream` object. This keeps the single
 binary messenger handler for each channel name alive for the
-lifetime of the process, so independent `BatteryProvider`s can
+lifetime of the isolate, so independent `BatteryProvider`s can
 coexist without the second one silencing the first. Per-instance
 caching only kicks in when an `eventStream` is injected for testing,
 so unit fixtures stay isolated.

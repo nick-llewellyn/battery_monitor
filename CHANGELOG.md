@@ -15,7 +15,7 @@ and is now committed to under semantic versioning.
   in debug builds when the platform reports an unknown level.
 - `BatteryLevelChannel`, `BatteryStateChannel`, and
   `BatterySaveModeChannel` now share their mapped platform broadcast
-  stream process-wide via a static cache, instead of calling
+  stream isolate-wide via a `static` cache, instead of calling
   `EventChannel.receiveBroadcastStream()` per instance. The previous
   per-instance cache silenced earlier subscribers as soon as a second
   `BatteryProvider` (or any second wrapper instance for the same
