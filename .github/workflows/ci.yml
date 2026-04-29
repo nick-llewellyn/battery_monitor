@@ -58,6 +58,35 @@ jobs:
         with:
           flutter-version: ${{ matrix.flutter }}
           channel: 'stable'
+          cache: true
+
+      # pubspec.lock is gitignored (standard for libraries), so the
+      # cache key falls back to pubspec.yaml content hash with a
+      # matrix.flutter discriminator. restore-keys allows a partial
+      # restore when only the pubspec changed: pub will reuse the
+      # bulk of the existing cache and only fetch the deltas.
+      - name: Cache pub
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ matrix.flutter }}-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            pub-${{ runner.os }}-${{ matrix.flutter }}-
+
+      # Gradle caches dominate the Android cold-build cost. Both the
+      # global module cache (~/.gradle/caches) and the per-version
+      # wrapper download (~/.gradle/wrapper) benefit. matrix.flutter
+      # is in the key because Flutter version selects which AGP /
+      # Kotlin Gradle plugin versions land via flutter_tools.
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ matrix.flutter }}-${{ hashFiles('example/android/**/*.gradle*', 'example/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ matrix.flutter }}-
 
       - name: Resolve package dependencies
         run: flutter pub get
@@ -127,6 +156,33 @@ jobs:
         with:
           flutter-version: ${{ matrix.flutter }}
           channel: 'stable'
+          cache: true
+
+      - name: Cache pub
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ matrix.flutter }}-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            pub-${{ runner.os }}-${{ matrix.flutter }}-
+
+      # CocoaPods is the dominant cold-build cost on macos-latest.
+      # Caches the user-level pod source cache (downloaded podspecs)
+      # and the per-project resolved Pods/ tree. Podfile.lock is
+      # gitignored, so the key falls back to Podfile + pubspec.yaml
+      # (Flutter regenerates plugin Pod entries from the example's
+      # pubspec on every `pub get`). matrix.flutter is in the key
+      # because the Flutter framework version selects the
+      # Flutter.podspec content.
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            example/ios/Pods
+          key: pods-${{ matrix.flutter }}-${{ hashFiles('example/ios/Podfile', '**/pubspec.yaml') }}
+          restore-keys: |
+            pods-${{ matrix.flutter }}-
 
       - name: Resolve package dependencies
         run: flutter pub get
@@ -161,6 +217,21 @@ jobs:
         with:
           flutter-version: '3.41.7'
           channel: 'stable'
+          cache: true
+
+      # Pin-only job: matrix.flutter does not exist here, so the
+      # cache key uses the literal pinned version. Keeps this job's
+      # cache namespace separate from the matrix-keyed `build:` and
+      # `ios:` caches. `pana` itself lives under ~/.pub-cache after
+      # `dart pub global activate`, so this cache also avoids
+      # re-downloading and re-snapshotting pana on every run.
+      - name: Cache pub
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-3.41.7-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            pub-${{ runner.os }}-3.41.7-
 
       - name: Resolve package dependencies
         run: flutter pub get
