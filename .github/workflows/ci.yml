@@ -98,8 +98,34 @@ jobs:
       - name: Analyze package
         run: dart analyze .
 
+      # `--coverage` writes coverage/lcov.info. Generated matrix-wide
+      # so coverage gaps caused by floor-only or pin-only code paths
+      # surface on both legs; uploaded pin-only below to avoid double-
+      # counting line coverage in downstream reports.
       - name: Run Dart tests
-        run: flutter test
+        run: flutter test --coverage
+
+      # Artifact fallback per the CI-4 plan: this repo is private and
+      # no CODECOV_TOKEN is configured, so the lcov.info goes up as a
+      # workflow artifact rather than to Codecov. Once a token is
+      # added (Settings > Secrets > Actions), swap this step for the
+      # commented codecov-action block below.
+      - name: Upload coverage artifact
+        if: matrix.flutter == '3.41.7'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: error
+          retention-days: 14
+
+      # - name: Upload coverage to Codecov
+      #   if: matrix.flutter == '3.41.7'
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     files: coverage/lcov.info
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     fail_ci_if_error: true
 
       - name: Resolve example dependencies
         working-directory: example
