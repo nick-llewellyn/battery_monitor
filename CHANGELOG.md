@@ -1,5 +1,44 @@
 # Changelog
 
+## 1.0.0
+
+First stable release. The public API surface from 0.1.0 is unchanged
+and is now committed to under semantic versioning.
+
+### Architecture
+
+The push-based event model is the load-bearing design choice and is
+now considered stable. Battery level, charging state, and Low Power
+Mode each ride a dedicated `EventChannel`, mapped 1:1 onto the
+underlying OS notification (`UIDeviceBatteryLevelDidChangeNotification`,
+`UIDevice.batteryStateDidChangeNotification`,
+`NSProcessInfoPowerStateDidChange` on iOS;
+`Intent.ACTION_BATTERY_CHANGED` and
+`PowerManager.ACTION_POWER_SAVE_MODE_CHANGED` on Android). No timers,
+no polling, no collapsing of the three signals onto a single channel
+that would silently drop level updates between charge-state
+transitions.
+
+### iOS source layout
+
+iOS sources moved to `ios/battery_monitor/Sources/battery_monitor/` so
+a single tree feeds both Swift Package Manager (`Package.swift`) and
+CocoaPods (`battery_monitor.podspec` `s.source_files`). SPM consumers
+get a first-class manifest (tools version 5.9, iOS 13.0); CocoaPods
+consumers see no change in behaviour. The Dart and Android layers,
+plugin registration, and channel namespaces are untouched.
+
+### Tooling
+
+- `pana` reports 160/160 on the published artefact.
+- CI publishes to pub.dev and uploads coverage to Codecov via
+  tokenless OIDC trust relationships -- no long-lived secrets in the
+  repository.
+- `main` branch protection requires the full 6-check matrix
+  (Android + iOS on Flutter 3.35.0 and the `.fvmrc`-pinned 3.41.7,
+  plus `pana + publish dry-run` and `Dependency review`) and
+  resolution of all review threads.
+
 ## 0.1.0
 
 Initial release.
