@@ -138,3 +138,48 @@ jobs:
       - name: Build example for iOS simulator
         working-directory: example
         run: flutter build ios --simulator --no-codesign
+
+  publish-check:
+    # Publication readiness gate: pana scoring + `pub publish --dry-run`.
+    # Pin-only because pana scoring and publish-time validation are
+    # output-format-sensitive (Dart minor-version drift shifts pana
+    # heuristics, and pub.dev itself scores against the latest stable
+    # Dart). The .fvmrc pin is the closest proxy to what pub.dev will
+    # see at release time. Per the standard pattern, pin-only gates
+    # avoid spurious matrix-wide failures from formatter/scorer drift.
+    #
+    # ubuntu-latest is sufficient: neither pana nor publish dry-run
+    # invokes the Android or iOS toolchains.
+    name: pana + publish dry-run (Flutter 3.41.7)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.7'
+          channel: 'stable'
+
+      - name: Resolve package dependencies
+        run: flutter pub get
+
+      - name: Activate pana
+        run: dart pub global activate pana
+
+      # `--exit-code-threshold N` exits non-zero when
+      # (maxPoints - grantedPoints) > N. Current baseline is 140/160
+      # (-10 file conventions, -10 platform support; the latter is
+      # inherent because the plugin only ships android+ios). Threshold
+      # of 30 enforces a floor of 130/160 per CI-3 plan; tighten to 20
+      # once the file-convention points are recovered.
+      - name: Run pana
+        run: pana --no-warning --exit-code-threshold 30 .
+
+      # Catches missing LICENSE / CHANGELOG, malformed pubspec
+      # description, missing topics, and the Flutter upper-bound
+      # deprecation. Fails on any warning, matching pub.dev's own
+      # publish-time gate.
+      - name: Verify pub publish dry-run
+        run: flutter pub publish --dry-run
