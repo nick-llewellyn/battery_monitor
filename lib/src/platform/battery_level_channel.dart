@@ -4,9 +4,11 @@ import 'package:flutter/services.dart';
 
 /// Platform channel for battery level change notifications.
 ///
-/// Exposes a stream of integer battery percentages (0..100, or -1 if
-/// the platform reports the level as unknown). Backed by the
-/// `com.nllewellyn.battery_monitor/battery_level` [EventChannel].
+/// Exposes a stream of integer battery percentages (0..100). Backed by
+/// the `com.nllewellyn.battery_monitor/battery_level` [EventChannel].
+/// Both native handlers drop unknown readings (e.g., iOS Simulator,
+/// Android battery extras missing) rather than forwarding sentinel
+/// values, so the stream only carries levels in the documented range.
 ///
 /// **Platform-specific behavior:**
 /// - **iOS:** Event-driven via `UIDeviceBatteryLevelDidChangeNotification`.
@@ -46,8 +48,9 @@ class BatteryLevelChannel {
   /// `UIDeviceBatteryLevelDidChangeNotification`; on Android it is
   /// backed by `Intent.ACTION_BATTERY_CHANGED`.
   ///
-  /// Returns `-1` when the battery level is unknown (e.g., on the
-  /// iOS Simulator).
+  /// Unknown readings (e.g., the iOS Simulator, or Android battery
+  /// extras missing) are dropped at the native layer and never reach
+  /// this stream.
   ///
   /// **Error handling:**
   /// - Throws an [Exception] if the platform returns an invalid type.

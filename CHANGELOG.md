@@ -5,6 +5,15 @@
 First stable release. The public API surface from 0.1.0 is unchanged
 and is now committed to under semantic versioning.
 
+### Bug fixes
+
+- Android `BatteryLevelStreamHandler` no longer emits `-1` when
+  `EXTRA_LEVEL` / `EXTRA_SCALE` are missing or invalid. Unknown
+  readings are dropped silently to match the iOS handler, so the
+  `com.nllewellyn.battery_monitor/battery_level` channel only carries
+  values in `0..100` and `BatteryInfo`'s 0..100 assert no longer trips
+  in debug builds when the platform reports an unknown level.
+
 ### Architecture
 
 The push-based event model is the load-bearing design choice and is

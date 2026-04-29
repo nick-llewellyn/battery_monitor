@@ -37,17 +37,21 @@ two thin Dart layers on top:
 ### Battery level
 
 - **Channel:** `com.nllewellyn.battery_monitor/battery_level`
-- **Payload:** `int` (0..100, or `-1` if unknown)
+- **Payload:** `int` (0..100). Unknown readings are dropped at the
+  native layer and never forwarded.
 - **Android:** `Intent.ACTION_BATTERY_CHANGED` sticky broadcast.
   Percentage computed as `(EXTRA_LEVEL * 100) / EXTRA_SCALE`.
   `registerReceiver(null, filter)` returns the cached intent so the
-  initial value is delivered synchronously on subscription.
+  initial value is delivered synchronously on subscription. Unknown
+  readings (negative `EXTRA_LEVEL` or non-positive `EXTRA_SCALE`) are
+  dropped silently.
 - **iOS:** `UIDeviceBatteryLevelDidChangeNotification`. Fires on every
   1% change (iOS 8+). `UIDevice.current.batteryLevel` returns a float
   in `0.0..1.0`, or `-1.0` when unknown (Simulator, or monitoring
-  disabled). The handler converts to a percentage as a `Double`.
-  Hardware-level granularity is 5%, so values come through as
-  multiples of 5 (e.g., 70.0, 75.0).
+  disabled). The handler converts to a percentage as a `Double` and
+  drops the unknown sentinel rather than forwarding it. Hardware-level
+  granularity is 5%, so values come through as multiples of 5 (e.g.,
+  70.0, 75.0).
 
 ### Battery state
 

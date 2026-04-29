@@ -15,8 +15,11 @@ import io.flutter.plugin.common.EventChannel
  * Intent.ACTION_BATTERY_CHANGED to receive notifications when the level
  * changes.
  *
- * Emits integer values from 0 to 100 representing the battery percentage,
- * or -1 when the level is unknown.
+ * Emits integer values from 0 to 100 representing the battery percentage.
+ * When the level is unknown (EXTRA_LEVEL or EXTRA_SCALE missing/invalid),
+ * the value is dropped rather than forwarded -- matching the iOS handler --
+ * so the consumer-facing stream stays well-typed and the Dart-side
+ * `BatteryInfo` 0..100 invariant holds.
  *
  * Platform support: all Android versions; ACTION_BATTERY_CHANGED is a sticky
  * broadcast so the initial value is delivered synchronously on subscription.
@@ -62,18 +65,19 @@ class BatteryLevelStreamHandler(private val context: Context) : EventChannel.Str
 
     /**
      * Reads EXTRA_LEVEL and EXTRA_SCALE from the battery changed intent,
-     * computes the percentage, and forwards it to Flutter.
+     * computes the percentage, and forwards it to Flutter. Unknown values
+     * (negative `EXTRA_LEVEL` or non-positive `EXTRA_SCALE`) are dropped
+     * silently -- the consumer-facing stream only carries 0..100.
      */
     private fun sendBatteryLevel(intent: Intent) {
         val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
         val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100)
 
-        val percentage = if (level >= 0 && scale > 0) {
-            (level * 100) / scale
-        } else {
-            -1
+        if (level < 0 || scale <= 0) {
+            return
         }
 
+        val percentage = (level * 100) / scale
         eventSink?.success(percentage)
     }
 }
