@@ -37,6 +37,7 @@ class BatteryStateChannel {
   );
 
   final Stream<dynamic>? _eventStream;
+  Stream<ChargingState>? _onBatteryStateChanged;
 
   /// Stream of battery charging state changes.
   ///
@@ -44,6 +45,12 @@ class BatteryStateChannel {
   /// state. On iOS this is backed by
   /// `UIDevice.batteryStateDidChangeNotification`; on Android it is
   /// backed by `Intent.ACTION_BATTERY_CHANGED`.
+  ///
+  /// The mapped broadcast stream is cached per channel instance, so
+  /// repeated reads of this getter -- and multiple subscribers -- share
+  /// the same underlying [EventChannel.receiveBroadcastStream]
+  /// subscription. Without that caching, every read would re-register
+  /// the binary messenger handler and silence earlier subscribers.
   ///
   /// **Mapping from native int values:**
   /// - 0 = [ChargingState.unknown]
@@ -58,25 +65,29 @@ class BatteryStateChannel {
   /// - Platform errors are propagated through the stream's error
   ///   channel.
   Stream<ChargingState> get onBatteryStateChanged {
-    final source = _eventStream ?? _eventChannel.receiveBroadcastStream();
-    return source.map((dynamic stateCode) {
-      if (stateCode is! int) {
-        throw Exception('Invalid battery state type: ${stateCode.runtimeType}');
-      }
+    return _onBatteryStateChanged ??=
+        (_eventStream ?? _eventChannel.receiveBroadcastStream()).map((
+          dynamic stateCode,
+        ) {
+          if (stateCode is! int) {
+            throw Exception(
+              'Invalid battery state type: ${stateCode.runtimeType}',
+            );
+          }
 
-      switch (stateCode) {
-        case 1:
-          return ChargingState.charging;
-        case 2:
-          return ChargingState.discharging;
-        case 3:
-          return ChargingState.full;
-        case 4:
-          return ChargingState.connectedNotCharging;
-        case 0:
-        default:
-          return ChargingState.unknown;
-      }
-    });
+          switch (stateCode) {
+            case 1:
+              return ChargingState.charging;
+            case 2:
+              return ChargingState.discharging;
+            case 3:
+              return ChargingState.full;
+            case 4:
+              return ChargingState.connectedNotCharging;
+            case 0:
+            default:
+              return ChargingState.unknown;
+          }
+        });
   }
 }

@@ -40,6 +40,7 @@ class BatterySaveModeChannel {
   );
 
   final Stream<dynamic>? _eventStream;
+  Stream<bool>? _onBatterySaveModeChanged;
 
   /// Stream of battery save mode state changes.
   ///
@@ -52,17 +53,27 @@ class BatterySaveModeChannel {
   /// **Android:** Fires when Battery Saver is toggled in
   /// Settings > Battery.
   ///
+  /// The mapped broadcast stream is cached per channel instance, so
+  /// repeated reads of this getter -- and multiple subscribers -- share
+  /// the same underlying [EventChannel.receiveBroadcastStream]
+  /// subscription. Without that caching, every read would re-register
+  /// the binary messenger handler and silence earlier subscribers.
+  ///
   /// **Error handling:**
   /// - Throws an [Exception] if the platform returns an invalid type.
   /// - Platform errors are propagated through the stream's error
   ///   channel.
   Stream<bool> get onBatterySaveModeChanged {
-    final source = _eventStream ?? _eventChannel.receiveBroadcastStream();
-    return source.map((dynamic enabled) {
-      if (enabled is bool) {
-        return enabled;
-      }
-      throw Exception('Invalid battery save mode type: ${enabled.runtimeType}');
-    });
+    return _onBatterySaveModeChanged ??=
+        (_eventStream ?? _eventChannel.receiveBroadcastStream()).map((
+          dynamic enabled,
+        ) {
+          if (enabled is bool) {
+            return enabled;
+          }
+          throw Exception(
+            'Invalid battery save mode type: ${enabled.runtimeType}',
+          );
+        });
   }
 }

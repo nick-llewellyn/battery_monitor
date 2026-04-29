@@ -13,6 +13,13 @@ and is now committed to under semantic versioning.
   `com.nllewellyn.battery_monitor/battery_level` channel only carries
   values in `0..100` and `BatteryInfo`'s 0..100 assert no longer trips
   in debug builds when the platform reports an unknown level.
+- `BatteryLevelChannel`, `BatteryStateChannel`, and
+  `BatterySaveModeChannel` now cache the mapped broadcast stream per
+  instance instead of calling `EventChannel.receiveBroadcastStream()`
+  on every getter access. Multiple subscribers (or repeated getter
+  reads) share a single binary-messenger handler, so a later listen no
+  longer silences earlier subscribers. Unit tests cover the multi-
+  listener fan-out for all three channels.
 
 ### Architecture
 

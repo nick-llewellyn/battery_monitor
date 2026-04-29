@@ -69,5 +69,32 @@ void main() {
       check(caughtError).isA<Exception>();
       await sub.cancel();
     });
+
+    test(
+      'caches mapped stream so multiple listeners share one source',
+      () async {
+        check(
+          identical(
+            channel.onBatteryLevelChanged,
+            channel.onBatteryLevelChanged,
+          ),
+        ).isTrue();
+
+        final first = <int>[];
+        final second = <int>[];
+        final subA = channel.onBatteryLevelChanged.listen(first.add);
+        final subB = channel.onBatteryLevelChanged.listen(second.add);
+
+        controller
+          ..add(80)
+          ..add(60);
+        await Future<void>.delayed(Duration.zero);
+
+        check(first).deepEquals([80, 60]);
+        check(second).deepEquals([80, 60]);
+        await subA.cancel();
+        await subB.cancel();
+      },
+    );
   });
 }

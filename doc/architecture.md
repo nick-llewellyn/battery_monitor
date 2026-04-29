@@ -112,6 +112,14 @@ cancels its three `StreamSubscription`s and disposes its four
 `BatteryState.dispose` detaches its listeners, disposes its internal
 `ValueNotifier`, and forwards to the underlying provider.
 
+The three channel wrappers cache their mapped broadcast stream per
+instance: the first read of `onBatteryLevelChanged` /
+`onBatteryStateChanged` / `onBatterySaveModeChanged` calls
+`EventChannel.receiveBroadcastStream()` once, and every later read --
+including additional listens by other consumers -- shares that same
+broadcast source. Without the cache, each getter call would re-register
+the binary messenger handler and silence earlier subscribers.
+
 ## Error handling
 
 - Invalid channel payload types throw an `Exception` with a descriptive

@@ -40,6 +40,7 @@ class BatteryLevelChannel {
   );
 
   final Stream<dynamic>? _eventStream;
+  Stream<int>? _onBatteryLevelChanged;
 
   /// Stream of battery level changes (0..100).
   ///
@@ -52,20 +53,28 @@ class BatteryLevelChannel {
   /// extras missing) are dropped at the native layer and never reach
   /// this stream.
   ///
+  /// The mapped broadcast stream is cached per channel instance, so
+  /// repeated reads of this getter -- and multiple subscribers -- share
+  /// the same underlying [EventChannel.receiveBroadcastStream]
+  /// subscription. Without that caching, every read would re-register
+  /// the binary messenger handler and silence earlier subscribers.
+  ///
   /// **Error handling:**
   /// - Throws an [Exception] if the platform returns an invalid type.
   /// - Platform errors are propagated through the stream's error
   ///   channel.
   Stream<int> get onBatteryLevelChanged {
-    final source = _eventStream ?? _eventChannel.receiveBroadcastStream();
-    return source.map((dynamic level) {
-      if (level is int) {
-        return level;
-      }
-      if (level is double) {
-        return level.toInt();
-      }
-      throw Exception('Invalid battery level type: ${level.runtimeType}');
-    });
+    return _onBatteryLevelChanged ??=
+        (_eventStream ?? _eventChannel.receiveBroadcastStream()).map((
+          dynamic level,
+        ) {
+          if (level is int) {
+            return level;
+          }
+          if (level is double) {
+            return level.toInt();
+          }
+          throw Exception('Invalid battery level type: ${level.runtimeType}');
+        });
   }
 }

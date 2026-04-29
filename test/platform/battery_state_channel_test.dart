@@ -117,5 +117,36 @@ void main() {
       ]);
       await sub.cancel();
     });
+
+    test(
+      'caches mapped stream so multiple listeners share one source',
+      () async {
+        check(
+          identical(
+            channel.onBatteryStateChanged,
+            channel.onBatteryStateChanged,
+          ),
+        ).isTrue();
+
+        final first = <ChargingState>[];
+        final second = <ChargingState>[];
+        final subA = channel.onBatteryStateChanged.listen(first.add);
+        final subB = channel.onBatteryStateChanged.listen(second.add);
+
+        controller
+          ..add(1)
+          ..add(2);
+        await Future<void>.delayed(Duration.zero);
+
+        check(
+          first,
+        ).deepEquals([ChargingState.charging, ChargingState.discharging]);
+        check(
+          second,
+        ).deepEquals([ChargingState.charging, ChargingState.discharging]);
+        await subA.cancel();
+        await subB.cancel();
+      },
+    );
   });
 }
