@@ -1,6 +1,7 @@
 # battery_monitor
 
 [![CI](https://github.com/nick-llewellyn/battery_monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/nick-llewellyn/battery_monitor/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/nick-llewellyn/battery_monitor/branch/main/graph/badge.svg)](https://codecov.io/gh/nick-llewellyn/battery_monitor)
 [![Pub Version](https://img.shields.io/pub/v/battery_monitor.svg)](https://pub.dev/packages/battery_monitor)
 [![MIT License](https://img.shields.io/badge/license-MIT-purple.svg)](https://opensource.org/licenses/MIT)
 
