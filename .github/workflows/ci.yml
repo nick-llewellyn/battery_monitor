@@ -15,6 +15,15 @@ on:
       - '.gitignore'
   workflow_dispatch:
 
+# Cancel superseded matrix runs on the same ref (typically a force-push to
+# an open PR). Pure cost optimization; has no functional effect on a
+# linear push history. The group is keyed on workflow + ref so push to
+# main and pull_request runs against the same head do not cancel each
+# other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     # Matrix exercises both the declared SDK floor (3.35.0, the first
@@ -23,7 +32,7 @@ jobs:
     # current version (3.41.7). Format check runs only on the pinned
     # version because `dart format` output shifts between Dart minors
     # and we do not want spurious failures across the matrix.
-    name: Format / analyze / Dart tests (Flutter ${{ matrix.flutter }})
+    name: Dart + Android (Flutter ${{ matrix.flutter }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -32,6 +41,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+
+      # JDK 17 satisfies AGP 8.x and the example's
+      # sourceCompatibility / targetCompatibility / jvmTarget pin
+      # (JavaVersion.VERSION_17 in example/android/app/build.gradle.kts).
+      # Provisioned before Flutter setup so the embedded Gradle daemon
+      # uses the correct JAVA_HOME from first invocation.
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -63,3 +83,14 @@ jobs:
       - name: Run example tests
         working-directory: example
         run: flutter test
+
+      # Native Android compile gate. Runs matrix-wide so SDK-floor
+      # regressions in plugin Kotlin or AGP/Gradle interaction surface
+      # on the 3.35.0 leg, not only on the .fvmrc pin. assembleDebug is
+      # the cheapest task that exercises the full plugin -> example
+      # link path (Kotlin compile, manifest merge, resource pack, dex).
+      # Relies on the prior `flutter pub get` in example/ to have
+      # generated .flutter-plugins-dependencies.
+      - name: Build example APK (debug)
+        working-directory: example/android
+        run: ./gradlew assembleDebug
