@@ -87,14 +87,23 @@ grep '^## ' CHANGELOG.md | head -1            # must match pubspec
 fvm dart pub global run pana --exit-code-threshold 30 .
 fvm flutter pub publish --dry-run
 
-# 3. Tag and publish
+# 3. Tag (vX.Y.Z format), publish, push
 git tag v$(grep '^version:' pubspec.yaml | awk '{print $2}')
 fvm flutter pub publish                       # interactive auth
 git push origin main --tags
 ```
 
+The `git push --tags` in step 3 also triggers
+`.github/workflows/release.yml`. On the first run, trusted publishing
+is not yet configured on pub.dev, so the workflow's `flutter pub
+publish --force` step fails with an auth error and the subsequent
+GitHub Release / CHANGELOG-extraction steps are skipped. This is
+expected — the manual `flutter pub publish` in step 3 is what actually
+ships the package to pub.dev for the first publish.
+
 After this completes once, configure trusted publisher (see *Blockers
-§1*) and subsequent releases use the automated path below.
+§1*) and subsequent releases use the automated path below, which
+publishes via OIDC and cuts the GitHub Release automatically.
 
 ### Subsequent releases (automated)
 
