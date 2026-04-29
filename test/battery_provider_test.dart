@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:battery_monitor/battery_monitor.dart';
 import 'package:checks/checks.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/fake_event_channel.dart';
@@ -141,6 +142,52 @@ void main() {
       );
 
       check(error.stackTrace).equals(trace);
+    });
+  });
+
+  group('multiple BatteryProvider instances on the platform path', () {
+    const levelName = 'com.nllewellyn.battery_monitor/battery_level';
+    const stateName = 'com.nllewellyn.battery_monitor/battery_state';
+    const saveModeName = 'com.nllewellyn.battery_monitor/battery_save_mode';
+
+    late TestDefaultBinaryMessenger messenger;
+
+    setUpAll(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      Future<dynamic> noop(MethodCall _) async => null;
+      messenger.setMockMethodCallHandler(const MethodChannel(levelName), noop);
+      messenger.setMockMethodCallHandler(const MethodChannel(stateName), noop);
+      messenger.setMockMethodCallHandler(
+        const MethodChannel(saveModeName),
+        noop,
+      );
+    });
+
+    tearDownAll(() {
+      messenger.setMockMethodCallHandler(const MethodChannel(levelName), null);
+      messenger.setMockMethodCallHandler(const MethodChannel(stateName), null);
+      messenger.setMockMethodCallHandler(
+        const MethodChannel(saveModeName),
+        null,
+      );
+    });
+
+    test('both providers observe a single simulated level event', () async {
+      final providerA = BatteryProvider();
+      final providerB = BatteryProvider();
+      await Future<void>.delayed(Duration.zero);
+
+      final event = const StandardMethodCodec().encodeSuccessEnvelope(75);
+      await messenger.handlePlatformMessage(levelName, event, (_) {});
+      await Future<void>.delayed(Duration.zero);
+
+      check(providerA.batteryLevel.value).equals(75);
+      check(providerB.batteryLevel.value).equals(75);
+
+      providerA.dispose();
+      providerB.dispose();
     });
   });
 }

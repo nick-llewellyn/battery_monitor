@@ -39,8 +39,23 @@ class BatteryLevelChannel {
     'com.nllewellyn.battery_monitor/battery_level',
   );
 
+  /// Isolate-wide cache of the mapped platform broadcast stream.
+  ///
+  /// `static` fields in Dart are scoped to the enclosing isolate, so
+  /// this cache is shared across every [BatteryLevelChannel] instance
+  /// constructed in the main Dart isolate (which is where Flutter's
+  /// platform channels are wired). Spawned isolates that import this
+  /// library would each get their own cache, but they cannot reach the
+  /// platform channel either.
+  ///
+  /// Calling [EventChannel.receiveBroadcastStream] more than once for
+  /// the same channel name re-registers the binary-messenger handler
+  /// and silences earlier subscribers, so every wrapper instance backed
+  /// by the real [EventChannel] must share the same mapped stream.
+  static Stream<int>? _sharedPlatformStream;
+
   final Stream<dynamic>? _eventStream;
-  Stream<int>? _onBatteryLevelChanged;
+  Stream<int>? _injectedStream;
 
   /// Stream of battery level changes (0..100).
   ///
@@ -53,28 +68,35 @@ class BatteryLevelChannel {
   /// extras missing) are dropped at the native layer and never reach
   /// this stream.
   ///
-  /// The mapped broadcast stream is cached per channel instance, so
-  /// repeated reads of this getter -- and multiple subscribers -- share
-  /// the same underlying [EventChannel.receiveBroadcastStream]
-  /// subscription. Without that caching, every read would re-register
-  /// the binary messenger handler and silence earlier subscribers.
+  /// The mapped broadcast stream is shared isolate-wide for the
+  /// production path, so any number of [BatteryLevelChannel] instances
+  /// (and any number of `BatteryProvider`s constructed from them) all
+  /// observe the same underlying
+  /// [EventChannel.receiveBroadcastStream] subscription. When an
+  /// `eventStream` is injected for testing, the cache is per-instance
+  /// so each test fixture stays isolated.
   ///
   /// **Error handling:**
   /// - Throws an [Exception] if the platform returns an invalid type.
   /// - Platform errors are propagated through the stream's error
   ///   channel.
   Stream<int> get onBatteryLevelChanged {
-    return _onBatteryLevelChanged ??=
-        (_eventStream ?? _eventChannel.receiveBroadcastStream()).map((
-          dynamic level,
-        ) {
-          if (level is int) {
-            return level;
-          }
-          if (level is double) {
-            return level.toInt();
-          }
-          throw Exception('Invalid battery level type: ${level.runtimeType}');
-        });
+    final injected = _eventStream;
+    if (injected != null) {
+      return _injectedStream ??= injected.map(_mapLevel);
+    }
+    return _sharedPlatformStream ??= _eventChannel.receiveBroadcastStream().map(
+      _mapLevel,
+    );
+  }
+
+  static int _mapLevel(dynamic level) {
+    if (level is int) {
+      return level;
+    }
+    if (level is double) {
+      return level.toInt();
+    }
+    throw Exception('Invalid battery level type: ${level.runtimeType}');
   }
 }
