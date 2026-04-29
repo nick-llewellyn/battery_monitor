@@ -70,7 +70,9 @@ costs a fraction of the platform-support score. Track separately
 both absent. Adding them would surface the example app on pub.dev.
 Tracked in `battery_monitor-y4h`. Not a publish blocker.
 
-## Release procedure (manual, first publish only)
+## Release procedure
+
+### First publish (manual, one-time)
 
 ```bash
 # 1. Clean working tree on main, version bumped, CHANGELOG updated
@@ -89,7 +91,21 @@ git push origin main --tags
 ```
 
 After this completes once, configure trusted publisher (see *Blockers
-§1*) and subsequent releases run from the CI-8 workflow on tag push.
+§1*) and subsequent releases use the automated path below.
+
+### Subsequent releases (automated)
+
+`.github/workflows/release.yml` triggers on `v*` tag pushes. The
+workflow re-runs pana + dry-run as a defence-in-depth gate, publishes
+to pub.dev via OIDC (no long-lived secrets), and cuts a GitHub Release
+with the matching `## X.Y.Z` section from `CHANGELOG.md` as the body.
+
+```bash
+# Bump pubspec.yaml version, update CHANGELOG.md, commit and push.
+git tag v$(grep '^version:' pubspec.yaml | awk '{print $2}')
+git push origin main --tags
+# Watch the run at https://github.com/nick-llewellyn/battery_monitor/actions
+```
 
 ## When to re-run pana locally
 
