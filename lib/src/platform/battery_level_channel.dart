@@ -12,10 +12,14 @@ import 'package:flutter/services.dart';
 ///
 /// **Platform-specific behavior:**
 /// - **iOS:** Event-driven via `UIDeviceBatteryLevelDidChangeNotification`.
-///   Fires on every 1% battery level change (iOS 8+). No polling.
+///   No polling. Reporting granularity is OS-version dependent and
+///   undocumented: iOS 8.1..16 reported 1% steps, iOS 17+ rounds to
+///   5% steps (an anti-fingerprinting change confirmed by Apple DTS).
+///   The native handler forwards whatever resolution the OS exposes;
+///   on iOS 17+ this stream therefore emits multiples of 5.
 /// - **Android:** Event-driven via `Intent.ACTION_BATTERY_CHANGED`.
 ///   The sticky broadcast yields an immediate initial value and
-///   subsequent updates whenever the level changes.
+///   subsequent updates whenever the level changes, at 1% granularity.
 ///
 /// **Usage:**
 /// ```dart

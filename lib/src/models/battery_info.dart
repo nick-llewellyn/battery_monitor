@@ -56,9 +56,11 @@ class BatteryInfo {
   ///
   /// The raw float value from the platform is preserved, allowing the
   /// UI to decide how to display it (e.g., floor, round, or show
-  /// decimals). Android always emits an integral percentage; iOS
-  /// provides values in 5% increments at the hardware layer (0.05
-  /// steps), exposed here without further quantisation.
+  /// decimals). Android always emits an integral percentage at 1%
+  /// granularity. iOS granularity is OS-version dependent and
+  /// undocumented: iOS 8.1..16 reported 1% steps, iOS 17+ rounds to
+  /// 5% steps (per Apple DTS, no public API can change this). The
+  /// value is exposed here without further quantisation.
   final double level;
 
   /// Current charging status. See [ChargingState].
