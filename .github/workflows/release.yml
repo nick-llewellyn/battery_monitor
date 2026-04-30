@@ -5,9 +5,18 @@
 #   1. First publish must be done manually with `flutter pub publish`
 #      from a maintainer's machine -- pub.dev only exposes the trusted-
 #      publisher UI after a package exists.
-#   2. At https://pub.dev/packages/battery_status/admin, enable
+#   2. Transfer the package to the `nllewellyn.com` verified publisher
+#      via https://pub.dev/packages/battery_status/admin -> Publisher.
+#      The verified-publisher relationship is a pub.dev-side ownership
+#      record; it requires no workflow changes here. The OIDC publish
+#      step below succeeds the same way for personal-uploader-owned and
+#      verified-publisher-owned packages.
+#   3. At https://pub.dev/packages/battery_status/admin, enable
 #      automated publishing pointing at this repo and this exact
-#      workflow file path (`.github/workflows/release.yml`).
+#      workflow file path (`.github/workflows/release.yml`). Configure
+#      this *after* the publisher transfer in step 2 so the trusted-
+#      publisher relationship is owned by the publisher rather than the
+#      original uploader.
 #
 # See doc/publishing.md for the full release procedure.
 
