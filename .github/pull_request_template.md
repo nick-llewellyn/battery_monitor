@@ -53,7 +53,7 @@ that's a real signal, not a flake.
 - [ ] Local `pana --no-warning .` score ≥ 130/160 (CI gate threshold)
 - [ ] `flutter pub publish --dry-run` is clean (no new warnings)
 - [ ] If a native channel signature changed, both
-      `BatteryMonitorPlugin.kt` and `BatteryMonitorPlugin.swift` were
+      `BatteryStatusPlugin.kt` and `BatteryStatusPlugin.swift` were
       updated together with the matching Dart `…Channel` wrapper
 - [ ] If the SDK floor was raised, `pubspec.yaml` constraints and
       `.github/workflows/ci.yml` matrix entries were updated together

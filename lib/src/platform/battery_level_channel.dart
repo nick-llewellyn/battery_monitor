@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 /// Platform channel for battery level change notifications.
 ///
 /// Exposes a stream of integer battery percentages (0..100). Backed by
-/// the `com.nllewellyn.battery_monitor/battery_level` [EventChannel].
+/// the `com.nllewellyn.battery_status/battery_level` [EventChannel].
 /// Both native handlers drop unknown readings (e.g., iOS Simulator,
 /// Android battery extras missing) rather than forwarding sentinel
 /// values, so the stream only carries levels in the documented range.
@@ -36,7 +36,7 @@ class BatteryLevelChannel {
 
   /// Event channel name for battery level notifications.
   static const EventChannel _eventChannel = EventChannel(
-    'com.nllewellyn.battery_monitor/battery_level',
+    'com.nllewellyn.battery_status/battery_level',
   );
 
   /// Isolate-wide cache of the mapped platform broadcast stream.

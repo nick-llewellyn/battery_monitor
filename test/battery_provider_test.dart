@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:battery_monitor/battery_monitor.dart';
+import 'package:battery_status/battery_status.dart';
 import 'package:checks/checks.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -146,9 +146,9 @@ void main() {
   });
 
   group('multiple BatteryProvider instances on the platform path', () {
-    const levelName = 'com.nllewellyn.battery_monitor/battery_level';
-    const stateName = 'com.nllewellyn.battery_monitor/battery_state';
-    const saveModeName = 'com.nllewellyn.battery_monitor/battery_save_mode';
+    const levelName = 'com.nllewellyn.battery_status/battery_level';
+    const stateName = 'com.nllewellyn.battery_status/battery_state';
+    const saveModeName = 'com.nllewellyn.battery_status/battery_save_mode';
 
     late TestDefaultBinaryMessenger messenger;
 

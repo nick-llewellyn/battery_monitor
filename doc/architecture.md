@@ -1,6 +1,6 @@
 # Channel architecture
 
-`battery_monitor` ships three independent platform EventChannels and
+`battery_status` ships three independent platform EventChannels and
 two thin Dart layers on top:
 
 ```
@@ -24,7 +24,7 @@ two thin Dart layers on top:
 ┌───────▼────────┐                    ┌─────────▼─────────┐
 │    Android     │                    │        iOS        │
 ├────────────────┤                    ├───────────────────┤
-│ BatteryMonitor │                    │ BatteryMonitor    │
+│ BatteryStatus  │                    │ BatteryStatus     │
 │ Plugin         │                    │ Plugin            │
 │   ├─ Level     │                    │   ├─ Level        │
 │   ├─ State     │                    │   ├─ State        │
@@ -36,7 +36,7 @@ two thin Dart layers on top:
 
 ### Battery level
 
-- **Channel:** `com.nllewellyn.battery_monitor/battery_level`
+- **Channel:** `com.nllewellyn.battery_status/battery_level`
 - **Payload:** `int` (0..100). Unknown readings are dropped at the
   native layer and never forwarded.
 - **Android:** `Intent.ACTION_BATTERY_CHANGED` sticky broadcast.
@@ -55,7 +55,7 @@ two thin Dart layers on top:
 
 ### Battery state
 
-- **Channel:** `com.nllewellyn.battery_monitor/battery_state`
+- **Channel:** `com.nllewellyn.battery_status/battery_state`
 - **Payload:** `int` (0..4)
 - **Android:** `Intent.ACTION_BATTERY_CHANGED` -> `EXTRA_STATUS`
   mapped as `CHARGING -> 1`, `DISCHARGING -> 2`, `FULL -> 3`,
@@ -67,7 +67,7 @@ two thin Dart layers on top:
 
 ### Battery save mode
 
-- **Channel:** `com.nllewellyn.battery_monitor/battery_save_mode`
+- **Channel:** `com.nllewellyn.battery_status/battery_save_mode`
 - **Payload:** `bool`
 - **Android:** `PowerManager.ACTION_POWER_SAVE_MODE_CHANGED` broadcast,
   current value read from `PowerManager.isPowerSaveMode`. Requires

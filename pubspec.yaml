@@ -1,12 +1,12 @@
-name: battery_monitor
+name: battery_status
 description: >-
   Event-driven battery level, charging state, and power-save mode for
   Flutter. Native EventChannels (Android, iOS) lifted into
   ValueListenables; injectable for tests.
 version: 1.0.1
-homepage: https://github.com/nick-llewellyn/battery_monitor
-repository: https://github.com/nick-llewellyn/battery_monitor
-issue_tracker: https://github.com/nick-llewellyn/battery_monitor/issues
+homepage: https://github.com/nick-llewellyn/battery_status
+repository: https://github.com/nick-llewellyn/battery_status
+issue_tracker: https://github.com/nick-llewellyn/battery_status/issues
 
 topics:
   - battery
@@ -51,7 +51,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.nllewellyn.battery_monitor
-        pluginClass: BatteryMonitorPlugin
+        package: com.nllewellyn.battery_status
+        pluginClass: BatteryStatusPlugin
       ios:
-        pluginClass: BatteryMonitorPlugin
+        pluginClass: BatteryStatusPlugin

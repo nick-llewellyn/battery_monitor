@@ -1,6 +1,6 @@
 name: battery_monitor_example
 description: >-
-  Showcase app for the `battery_monitor` Flutter plugin. Subscribes to
+  Showcase app for the `battery_status` Flutter plugin. Subscribes to
   the three native EventChannels through `BatteryProvider` /
   `BatteryState` and renders the live values in a single screen.
 publish_to: 'none'
@@ -13,7 +13,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  battery_monitor:
+  battery_status:
     path: ../
   cupertino_icons: ^1.0.8
 

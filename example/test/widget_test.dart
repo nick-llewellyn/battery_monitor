@@ -12,10 +12,10 @@ void main() {
   testWidgets('boots and shows the example scaffold', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const BatteryMonitorExampleApp());
+    await tester.pumpWidget(const BatteryStatusExampleApp());
     await tester.pump();
 
     expect(find.byType(Scaffold), findsOneWidget);
-    expect(find.text('battery_monitor example'), findsWidgets);
+    expect(find.text('battery_status example'), findsWidgets);
   });
 }

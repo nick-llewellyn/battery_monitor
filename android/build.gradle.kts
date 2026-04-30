@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.nllewellyn.battery_monitor"
+    namespace = "com.nllewellyn.battery_status"
     compileSdk = 35
 
     compileOptions {

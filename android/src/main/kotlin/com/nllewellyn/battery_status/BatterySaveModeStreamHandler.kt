@@ -1,4 +1,4 @@
-package com.nllewellyn.battery_monitor
+package com.nllewellyn.battery_status
 
 import android.content.BroadcastReceiver
 import android.content.Context

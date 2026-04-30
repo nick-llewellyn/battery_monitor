@@ -20,10 +20,10 @@ These must be resolved before the first publish; they are not gated by CI.
 CI-8 publishes via OIDC, not a long-lived token. Before the release
 workflow can succeed:
 
-1. Visit `https://pub.dev/packages/battery_monitor/admin` (after first
+1. Visit `https://pub.dev/packages/battery_status/admin` (after first
    manual publish) → *Automated publishing*.
 2. Add GitHub Actions as a trusted publisher pointed at
-   `nick-llewellyn/battery_monitor`, workflow `.github/workflows/release.yml`,
+   `nick-llewellyn/battery_status`, workflow `.github/workflows/release.yml`,
    environment unset.
 
 The first publish has to happen manually with `flutter pub publish` from
@@ -60,9 +60,9 @@ intentionally Android+iOS only; desktop is tracked in
 ### Swift Package Manager: resolved
 
 Resolved by `battery_monitor-egz`: the iOS plugin ships
-`ios/battery_monitor/Package.swift` alongside the legacy
-`ios/battery_monitor.podspec`. Both consume the same source tree under
-`ios/battery_monitor/Sources/battery_monitor/`, so consumers can pick
+`ios/battery_status/Package.swift` alongside the legacy
+`ios/battery_status.podspec`. Both consume the same source tree under
+`ios/battery_status/Sources/battery_status/`, so consumers can pick
 either build system. The Flutter framework is auto-linked by Flutter's
 SPM integration; no explicit `FlutterFramework` dependency is declared
 because that would raise the package's Flutter floor to 3.41.0.
@@ -116,7 +116,7 @@ with the matching `## X.Y.Z` section from `CHANGELOG.md` as the body.
 # Bump pubspec.yaml version, update CHANGELOG.md, commit and push.
 git tag v$(grep '^version:' pubspec.yaml | awk '{print $2}')
 git push origin main --tags
-# Watch the run at https://github.com/nick-llewellyn/battery_monitor/actions
+# Watch the run at https://github.com/nick-llewellyn/battery_status/actions
 ```
 
 ## When to re-run pana locally

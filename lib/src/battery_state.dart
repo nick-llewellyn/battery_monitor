@@ -1,7 +1,7 @@
 import 'dart:developer' as developer;
 
-import 'package:battery_monitor/src/battery_provider.dart';
-import 'package:battery_monitor/src/models/battery_info.dart';
+import 'package:battery_status/src/battery_provider.dart';
+import 'package:battery_status/src/models/battery_info.dart';
 import 'package:flutter/foundation.dart';
 
 /// Composes the three [ValueListenable]s on a [BatteryProvider] into a

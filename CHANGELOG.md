@@ -2,14 +2,42 @@
 
 ## 1.0.1
 
-Bug-fix release. No public API changes from 1.0.0.
+Renamed-package + bug-fix release. The Dart `BatteryProvider`,
+`BatteryState`, `BatteryInfo`, `ChargingState`, and the three channel
+wrappers keep the same shape; only the package identifier and the
+native plugin / channel namespace change.
+
+### Renamed package
+
+- The plugin is now published as **`battery_status`** instead of
+  `battery_monitor` to resolve a naming conflict with an unrelated
+  package on pub.dev. Consumers must update their import and
+  dependency:
+  - `dependencies: battery_monitor: ^1.0.0` ->
+    `dependencies: battery_status: ^1.0.1`
+  - `import 'package:battery_monitor/battery_monitor.dart';` ->
+    `import 'package:battery_status/battery_status.dart';`
+- Native plugin classes renamed: `BatteryMonitorPlugin` ->
+  `BatteryStatusPlugin` on both Android (Kotlin) and iOS (Swift).
+- Android Kotlin package + Gradle namespace:
+  `com.nllewellyn.battery_monitor` ->
+  `com.nllewellyn.battery_status`.
+- iOS pod / SPM module: `battery_monitor` -> `battery_status`. SPM
+  product name `battery-monitor` -> `battery-status`.
+- EventChannel names changed to match the new namespace:
+  - `com.nllewellyn.battery_monitor/battery_level` ->
+    `com.nllewellyn.battery_status/battery_level`
+  - `com.nllewellyn.battery_monitor/battery_state` ->
+    `com.nllewellyn.battery_status/battery_state`
+  - `com.nllewellyn.battery_monitor/battery_save_mode` ->
+    `com.nllewellyn.battery_status/battery_save_mode`
 
 ### Bug fixes
 
 - Android `BatteryLevelStreamHandler` no longer emits `-1` when
   `EXTRA_LEVEL` / `EXTRA_SCALE` are missing or invalid. Unknown
   readings are dropped silently to match the iOS handler, so the
-  `com.nllewellyn.battery_monitor/battery_level` channel only carries
+  `com.nllewellyn.battery_status/battery_level` channel only carries
   values in `0..100` and `BatteryInfo`'s 0..100 assert no longer trips
   in debug builds when the platform reports an unknown level.
 - `BatteryLevelChannel`, `BatteryStateChannel`, and

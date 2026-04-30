@@ -1,4 +1,4 @@
-// Minimal `package:battery_monitor` showcase.
+// Minimal `package:battery_status` showcase.
 //
 // Construct a single `BatteryProvider`, wrap it in a `BatteryState`,
 // then bind the composed `ValueListenable<BatteryInfo?>` to a
@@ -6,20 +6,20 @@
 // EventChannel emission. There is no timer or polling loop -- updates
 // flow from the platform notification straight into the widget tree.
 
-import 'package:battery_monitor/battery_monitor.dart';
+import 'package:battery_status/battery_status.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const BatteryMonitorExampleApp());
+  runApp(const BatteryStatusExampleApp());
 }
 
-class BatteryMonitorExampleApp extends StatelessWidget {
-  const BatteryMonitorExampleApp({super.key});
+class BatteryStatusExampleApp extends StatelessWidget {
+  const BatteryStatusExampleApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'battery_monitor example',
+      title: 'battery_status example',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
         useMaterial3: true,
@@ -56,7 +56,7 @@ class _HomePageState extends State<_HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('battery_monitor example')),
+      appBar: AppBar(title: const Text('battery_status example')),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: ValueListenableBuilder<BatteryInfo?>(

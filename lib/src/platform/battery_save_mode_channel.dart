@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 /// Platform channel for battery save mode state changes.
 ///
-/// Wraps the `com.nllewellyn.battery_monitor/battery_save_mode`
+/// Wraps the `com.nllewellyn.battery_status/battery_save_mode`
 /// [EventChannel] to receive Low Power Mode (iOS) / Battery Saver
 /// (Android) state changes from the native platform.
 ///
@@ -34,9 +34,9 @@ class BatterySaveModeChannel {
   /// The [EventChannel] for receiving battery save mode state changes.
   ///
   /// The channel name is hard-coded to match the native registration
-  /// in [BatteryMonitorPlugin] on both Android and iOS.
+  /// in [BatteryStatusPlugin] on both Android and iOS.
   static const EventChannel _eventChannel = EventChannel(
-    'com.nllewellyn.battery_monitor/battery_save_mode',
+    'com.nllewellyn.battery_status/battery_save_mode',
   );
 
   /// Isolate-wide cache of the mapped platform broadcast stream.
