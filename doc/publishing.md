@@ -15,16 +15,63 @@ catch and the manual steps required around the first publish.
 
 These must be resolved before the first publish; they are not gated by CI.
 
-### 1. Pub.dev trusted publisher
+### 1. Pub.dev verified publisher (`nllewellyn.com`)
+
+The package is published as a fresh first-time release directly under
+the `nllewellyn.com` verified publisher — there is no prior uploader
+or other party to transfer ownership from. The pub.dev listing will
+show `Publisher: nllewellyn.com` (with a verified-domain checkmark)
+from the first version onward.
+
+This is independent of the OIDC trusted-publisher configuration in §2:
+verified publisher is a pub.dev-side ownership/branding relationship,
+trusted publisher is the auth mechanism the workflow uses to push new
+versions. Both must be in place for the automated release path.
+
+Setup (one-time, in this order):
+
+1. **Verify the domain.** At `https://pub.dev/create-publisher`,
+   create the `nllewellyn.com` publisher and complete the DNS TXT
+   record verification (a few minutes to propagate). The Google
+   account performing this step (`nllewelln@gmail.com`) becomes the
+   first member of the publisher.
+2. **Claim the package name.** Run the first manual publish (see
+   *Release procedure → First publish* below) from `nllewelln@gmail.com`.
+   This creates `battery_status` on pub.dev with that account as the
+   sole uploader.
+3. **Associate the package with the publisher.** At
+   `https://pub.dev/packages/battery_status/admin` → *Publisher*,
+   select `nllewellyn.com` from the dropdown. Because the uploader is
+   already a member of the publisher, this is a one-click
+   association, not an inter-party transfer; the package is owned by
+   the publisher from that moment on and the listing badge updates
+   immediately.
+
+`pubspec.yaml` already reflects the publisher identity: `homepage`
+points at `https://nllewellyn.com` (the verified domain) and
+`repository`/`issue_tracker` point at the GitHub source repo. Pana
+URL-probes both, and pub.dev surfaces the publisher badge separately
+from these fields.
+
+### 2. Pub.dev trusted publisher (OIDC)
 
 CI-8 publishes via OIDC, not a long-lived token. Before the release
 workflow can succeed:
 
-1. Visit `https://pub.dev/packages/battery_monitor/admin` (after first
-   manual publish) → *Automated publishing*.
+1. Visit `https://pub.dev/packages/battery_status/admin` (after the
+   publisher association in §1 step 3 lands) → *Automated publishing*.
 2. Add GitHub Actions as a trusted publisher pointed at
-   `nick-llewellyn/battery_monitor`, workflow `.github/workflows/release.yml`,
+   `nick-llewellyn/battery_status`, workflow `.github/workflows/release.yml`,
    environment unset.
+
+The trusted-publisher relationship lives on the package, so
+configuring it after the §1 association means the publisher (rather
+than the bootstrapping uploader) is the authoritative owner of the
+automated-publish entry going forward. The `release.yml` workflow
+itself needs no changes for the verified-publisher setup; the
+`id-token: write` permission and `flutter pub publish --force`
+invocation are identical regardless of which publisher owns the
+package.
 
 The first publish has to happen manually with `flutter pub publish` from
 a maintainer's machine — pub.dev only enables the trusted-publisher UI
@@ -60,9 +107,9 @@ intentionally Android+iOS only; desktop is tracked in
 ### Swift Package Manager: resolved
 
 Resolved by `battery_monitor-egz`: the iOS plugin ships
-`ios/battery_monitor/Package.swift` alongside the legacy
-`ios/battery_monitor.podspec`. Both consume the same source tree under
-`ios/battery_monitor/Sources/battery_monitor/`, so consumers can pick
+`ios/battery_status/Package.swift` alongside the legacy
+`ios/battery_status.podspec`. Both consume the same source tree under
+`ios/battery_status/Sources/battery_status/`, so consumers can pick
 either build system. The Flutter framework is auto-linked by Flutter's
 SPM integration; no explicit `FlutterFramework` dependency is declared
 because that would raise the package's Flutter floor to 3.41.0.
@@ -101,9 +148,16 @@ GitHub Release / CHANGELOG-extraction steps are skipped. This is
 expected — the manual `flutter pub publish` in step 3 is what actually
 ships the package to pub.dev for the first publish.
 
-After this completes once, configure trusted publisher (see *Blockers
-§1*) and subsequent releases use the automated path below, which
-publishes via OIDC and cuts the GitHub Release automatically.
+After this completes once:
+
+1. Associate the package with the `nllewellyn.com` verified publisher
+   (see *Blockers §1*, step 3 — one-click selection from the package
+   admin page since the uploader is already a publisher member).
+2. Configure trusted publisher (see *Blockers §2*).
+
+Subsequent releases use the automated path below, which publishes via
+OIDC under the `nllewellyn.com` publisher identity and cuts the GitHub
+Release automatically.
 
 ### Subsequent releases (automated)
 
@@ -116,7 +170,7 @@ with the matching `## X.Y.Z` section from `CHANGELOG.md` as the body.
 # Bump pubspec.yaml version, update CHANGELOG.md, commit and push.
 git tag v$(grep '^version:' pubspec.yaml | awk '{print $2}')
 git push origin main --tags
-# Watch the run at https://github.com/nick-llewellyn/battery_monitor/actions
+# Watch the run at https://github.com/nick-llewellyn/battery_status/actions
 ```
 
 ## When to re-run pana locally

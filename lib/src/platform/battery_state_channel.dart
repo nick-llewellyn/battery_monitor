@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:battery_monitor/src/models/battery_info.dart';
+import 'package:battery_status/src/models/battery_info.dart';
 import 'package:flutter/services.dart';
 
 /// Platform channel for battery charging state change notifications.
 ///
 /// Exposes a stream of [ChargingState] values backed by the
-/// `com.nllewellyn.battery_monitor/battery_state` [EventChannel].
+/// `com.nllewellyn.battery_status/battery_state` [EventChannel].
 ///
 /// **Platform-specific behavior:**
 /// - **iOS:** Event-driven via `UIDevice.batteryStateDidChangeNotification`.
@@ -33,7 +33,7 @@ class BatteryStateChannel {
 
   /// Event channel name for battery state notifications.
   static const EventChannel _eventChannel = EventChannel(
-    'com.nllewellyn.battery_monitor/battery_state',
+    'com.nllewellyn.battery_status/battery_state',
   );
 
   /// Isolate-wide cache of the mapped platform broadcast stream.

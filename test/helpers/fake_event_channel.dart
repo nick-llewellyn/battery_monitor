@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:battery_monitor/battery_monitor.dart';
+import 'package:battery_status/battery_status.dart';
 
 /// Creates a set of stream controllers and channel instances for
 /// testing.

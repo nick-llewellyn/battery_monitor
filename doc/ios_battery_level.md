@@ -13,7 +13,7 @@ every level change between charge-state transitions. On a discharging
 device that means the percentage stays frozen until the next charging
 event, which is a long time.
 
-`battery_monitor` solves this by exposing the level and the state on
+`battery_status` solves this by exposing the level and the state on
 two separate EventChannels:
 
 ```

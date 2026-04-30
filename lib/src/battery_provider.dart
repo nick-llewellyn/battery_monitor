@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
-import 'package:battery_monitor/src/models/battery_info.dart';
-import 'package:battery_monitor/src/platform/battery_level_channel.dart';
-import 'package:battery_monitor/src/platform/battery_save_mode_channel.dart';
-import 'package:battery_monitor/src/platform/battery_state_channel.dart';
+import 'package:battery_status/src/models/battery_info.dart';
+import 'package:battery_status/src/platform/battery_level_channel.dart';
+import 'package:battery_status/src/platform/battery_save_mode_channel.dart';
+import 'package:battery_status/src/platform/battery_state_channel.dart';
 import 'package:flutter/foundation.dart';
 
 /// Captures a single battery error observed on one of the underlying

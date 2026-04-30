@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:battery_monitor/battery_monitor.dart';
+import 'package:battery_status/battery_status.dart';
 import 'package:checks/checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 

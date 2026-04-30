@@ -207,7 +207,7 @@ jobs:
     # only runner image with Xcode + iOS simulator SDKs. Separate job
     # rather than a matrix axis on `build:` so the linux and macOS legs
     # run in parallel (wall time = max, not sum). Same Flutter matrix
-    # as `build:` so SDK-floor regressions in BatteryMonitorPlugin.swift
+    # as `build:` so SDK-floor regressions in BatteryStatusPlugin.swift
     # or the podspec surface on both 3.35.0 and 3.41.7.
     #
     # `flutter build ios --simulator --no-codesign` is the cheapest task

@@ -69,7 +69,7 @@ fvm flutter test
 
 ## Architecture Overview
 
-`battery_monitor` is a Flutter plugin exposing battery level, charging
+`battery_status` is a Flutter plugin exposing battery level, charging
 state, and Low Power Mode via three native EventChannels (Android +
 iOS) surfaced as `ValueListenable`s on the Dart side.
 
@@ -82,12 +82,12 @@ iOS) surfaced as `ValueListenable`s on the Dart side.
 - `lib/src/battery_state.dart` -- composes the provider's three
   listenables into one `ValueListenable<BatteryInfo?>` by registering
   a listener that recomputes the snapshot on every change.
-- `android/src/.../BatteryMonitorPlugin.kt` and
-  `ios/battery_monitor/Sources/battery_monitor/BatteryMonitorPlugin.swift`
+- `android/src/.../BatteryStatusPlugin.kt` and
+  `ios/battery_status/Sources/battery_status/BatteryStatusPlugin.swift`
   register the three EventChannels and wire them to per-channel stream
   handlers backed by the OS notification APIs (BroadcastReceiver /
   NotificationCenter). The iOS sources sit under the SPM package layout
-  consumed by both `Package.swift` and the legacy `ios/battery_monitor.podspec`.
+  consumed by both `Package.swift` and the legacy `ios/battery_status.podspec`.
 
 See [`doc/architecture.md`](doc/architecture.md) for the channel
 specs and DI reference.
@@ -105,7 +105,7 @@ specs and DI reference.
 - Strict-mode analyzer flags are on (`strict-casts`, `strict-inference`,
   `strict-raw-types`).
 - Channel names are namespaced under
-  `com.nllewellyn.battery_monitor/`. Both sides of the wire (native
+  `com.nllewellyn.battery_status/`. Both sides of the wire (native
   registration + Dart wrapper) must move together when a name
   changes.
 - Tests use `package:checks` for assertions and inject

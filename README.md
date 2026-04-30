@@ -1,8 +1,8 @@
-# battery_monitor
+# battery_status
 
-[![CI](https://github.com/nick-llewellyn/battery_monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/nick-llewellyn/battery_monitor/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/nick-llewellyn/battery_monitor/branch/main/graph/badge.svg)](https://codecov.io/gh/nick-llewellyn/battery_monitor)
-[![Pub Version](https://img.shields.io/pub/v/battery_monitor.svg)](https://pub.dev/packages/battery_monitor)
+[![CI](https://github.com/nick-llewellyn/battery_status/actions/workflows/ci.yml/badge.svg)](https://github.com/nick-llewellyn/battery_status/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/nick-llewellyn/battery_status/branch/main/graph/badge.svg)](https://codecov.io/gh/nick-llewellyn/battery_status)
+[![Pub Version](https://img.shields.io/pub/v/battery_status.svg)](https://pub.dev/packages/battery_status)
 [![MIT License](https://img.shields.io/badge/license-MIT-purple.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -19,7 +19,7 @@ power-save flag) onto a single channel that fires only when the OS
 considers the *state* to have changed. On iOS that means battery level
 updates between charge-state transitions are silently dropped.
 
-`battery_monitor` exposes three dedicated EventChannels that map
+`battery_status` exposes three dedicated EventChannels that map
 directly onto the underlying OS notifications:
 
 - iOS battery level rides `UIDeviceBatteryLevelDidChangeNotification`
@@ -50,13 +50,13 @@ and the version pinned in [`.fvmrc`](.fvmrc) (Flutter 3.41.7 / Dart
 ## Install
 
 ```bash
-flutter pub add battery_monitor
+flutter pub add battery_status
 ```
 
 ## Use
 
 ```dart
-import 'package:battery_monitor/battery_monitor.dart';
+import 'package:battery_status/battery_status.dart';
 import 'package:flutter/widgets.dart';
 
 final provider = BatteryProvider(); // subscribes to native channels
@@ -92,13 +92,13 @@ state.dispose(); // also disposes the underlying provider
 
 ### Platform channels
 
-- **`BatteryLevelChannel`** -- wraps the `com.nllewellyn.battery_monitor/battery_level`
+- **`BatteryLevelChannel`** -- wraps the `com.nllewellyn.battery_status/battery_level`
   channel. `Stream<int> get onBatteryLevelChanged`.
 - **`BatteryStateChannel`** -- wraps the
-  `com.nllewellyn.battery_monitor/battery_state` channel.
+  `com.nllewellyn.battery_status/battery_state` channel.
   `Stream<ChargingState> get onBatteryStateChanged`.
 - **`BatterySaveModeChannel`** -- wraps the
-  `com.nllewellyn.battery_monitor/battery_save_mode` channel.
+  `com.nllewellyn.battery_status/battery_save_mode` channel.
   `Stream<bool> get onBatterySaveModeChanged`.
 
 ### Reactive composition
@@ -121,7 +121,7 @@ binding:
 
 ```dart
 import 'dart:async';
-import 'package:battery_monitor/battery_monitor.dart';
+import 'package:battery_status/battery_status.dart';
 import 'package:test/test.dart';
 
 void main() {
