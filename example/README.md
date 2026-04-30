@@ -1,6 +1,6 @@
 # battery_monitor_example
 
-Showcase app for the [`battery_monitor`](../) Flutter plugin.
+Showcase app for the [`battery_status`](../) Flutter plugin.
 
 Builds a single `BatteryProvider` / `BatteryState` pair, binds the
 composed `ValueListenable<BatteryInfo?>` to `ValueListenableBuilder`s,
