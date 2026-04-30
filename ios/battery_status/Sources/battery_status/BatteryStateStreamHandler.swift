@@ -58,6 +58,13 @@ class BatteryStateStreamHandler: NSObject, FlutterStreamHandler {
 
     /// Maps `UIDevice.current.batteryState` to the integer codes the
     /// Dart side translates back into the `ChargingState` enum.
+    ///
+    /// The `eventSink` invocation is hopped to the main queue for the
+    /// same reason as the level handler: Apple posts
+    /// `UIDevice.batteryStateDidChangeNotification` on the main queue
+    /// today but does not guarantee it, and consistent main-queue
+    /// dispatch across all three plugin handlers keeps the platform-
+    /// channel contract intact.
     private func sendBatteryState() {
         let state = UIDevice.current.batteryState
 
@@ -75,6 +82,8 @@ class BatteryStateStreamHandler: NSObject, FlutterStreamHandler {
             stateCode = 0
         }
 
-        eventSink?(stateCode)
+        DispatchQueue.main.async { [weak self] in
+            self?.eventSink?(stateCode)
+        }
     }
 }

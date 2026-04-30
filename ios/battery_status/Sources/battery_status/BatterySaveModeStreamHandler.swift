@@ -51,8 +51,18 @@ class BatterySaveModeStreamHandler: NSObject, FlutterStreamHandler {
 
     /// Reads `ProcessInfo.processInfo.isLowPowerModeEnabled` and forwards
     /// the current value to Flutter.
+    ///
+    /// `NSProcessInfoPowerStateDidChange` is delivered on an arbitrary
+    /// queue (Apple does not document the posting thread), so the
+    /// `eventSink` invocation is hopped to the main queue. Flutter
+    /// requires platform channel messages to be sent on the platform
+    /// (main) thread; emitting from a background thread triggers a
+    /// `shell.cc` warning and can leave Dart-side listeners observing
+    /// out-of-order updates that surface as UI build failures.
     private func sendBatterySaveMode() {
         let isLowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
-        eventSink?(isLowPowerMode)
+        DispatchQueue.main.async { [weak self] in
+            self?.eventSink?(isLowPowerMode)
+        }
     }
 }

@@ -45,13 +45,15 @@ two thin Dart layers on top:
   initial value is delivered synchronously on subscription. Unknown
   readings (negative `EXTRA_LEVEL` or non-positive `EXTRA_SCALE`) are
   dropped silently.
-- **iOS:** `UIDeviceBatteryLevelDidChangeNotification`. Fires on every
-  1% change (iOS 8+). `UIDevice.current.batteryLevel` returns a float
-  in `0.0..1.0`, or `-1.0` when unknown (Simulator, or monitoring
-  disabled). The handler converts to a percentage as a `Double` and
-  drops the unknown sentinel rather than forwarding it. Hardware-level
-  granularity is 5%, so values come through as multiples of 5 (e.g.,
-  70.0, 75.0).
+- **iOS:** `UIDeviceBatteryLevelDidChangeNotification`.
+  `UIDevice.current.batteryLevel` returns a float in `0.0..1.0`, or
+  `-1.0` when unknown (Simulator, or monitoring disabled). The
+  handler converts to a percentage as a `Double` and drops the
+  unknown sentinel rather than forwarding it. Reporting granularity
+  is OS-version dependent and undocumented: iOS 8.1..16 reported 1%
+  steps, iOS 17+ rounds to 5% steps (an anti-fingerprinting change
+  confirmed by Apple DTS, with no public API to override). On iOS
+  17+ values therefore arrive as multiples of 5 (e.g., 70.0, 75.0).
 
 ### Battery state
 

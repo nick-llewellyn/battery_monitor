@@ -52,17 +52,31 @@ class BatteryLevelStreamHandler: NSObject, FlutterStreamHandler {
     /// Reads `UIDevice.current.batteryLevel` (0.0..1.0, or -1.0 if
     /// unknown) and forwards a percentage in 0.0..100.0 to Flutter.
     ///
-    /// iOS hardware/OS reports battery level in 5% increments, so the
-    /// emitted percentage will be a multiple of 5 (e.g., 70.0, 75.0).
-    /// Unknown values (Simulator, monitoring disabled) are dropped
-    /// rather than forwarded to keep the consumer-facing stream
-    /// well-typed.
+    /// Reporting granularity is OS-version dependent and undocumented.
+    /// Apple Developer Technical Support has confirmed that on some
+    /// iOS versions the value is rounded to 1% and on others to 5%,
+    /// and that no other public API can change this rounding. In
+    /// practice iOS 8.1..16 reported 1% steps, and iOS 17+ regressed
+    /// to 5% steps as an anti-fingerprinting measure. The handler
+    /// forwards whatever resolution the OS provides without further
+    /// quantisation. Unknown values (Simulator, monitoring disabled)
+    /// are dropped rather than forwarded to keep the consumer-facing
+    /// stream well-typed.
+    ///
+    /// The `eventSink` invocation is hopped to the main queue. Apple
+    /// posts `UIDevice.batteryLevelDidChangeNotification` on the main
+    /// queue today, but does not guarantee it; aligning every handler
+    /// in this plugin on `DispatchQueue.main.async` makes the platform-
+    /// thread invariant explicit and matches the save-mode handler,
+    /// whose source notification is documented as background-delivered.
     private func sendBatteryLevel() {
         let batteryLevel = UIDevice.current.batteryLevel
 
         if batteryLevel >= 0 {
             let percentage = Double(batteryLevel * 100)
-            eventSink?(percentage)
+            DispatchQueue.main.async { [weak self] in
+                self?.eventSink?(percentage)
+            }
         }
     }
 }
