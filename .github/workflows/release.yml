@@ -2,21 +2,28 @@
 # publishing (no long-lived tokens) and cuts a matching GitHub Release.
 #
 # Prerequisite (one-time, maintainer action):
-#   1. First publish must be done manually with `flutter pub publish`
-#      from a maintainer's machine -- pub.dev only exposes the trusted-
-#      publisher UI after a package exists.
-#   2. Transfer the package to the `nllewellyn.com` verified publisher
-#      via https://pub.dev/packages/battery_status/admin -> Publisher.
-#      The verified-publisher relationship is a pub.dev-side ownership
-#      record; it requires no workflow changes here. The OIDC publish
-#      step below succeeds the same way for personal-uploader-owned and
-#      verified-publisher-owned packages.
-#   3. At https://pub.dev/packages/battery_status/admin, enable
-#      automated publishing pointing at this repo and this exact
-#      workflow file path (`.github/workflows/release.yml`). Configure
-#      this *after* the publisher transfer in step 2 so the trusted-
-#      publisher relationship is owned by the publisher rather than the
-#      original uploader.
+#   1. Verify the `nllewellyn.com` domain at
+#      https://pub.dev/create-publisher (DNS TXT record). The Google
+#      account performing this step becomes the first publisher member.
+#   2. First publish must be done manually with `flutter pub publish`
+#      from a maintainer's machine signed in as a publisher member --
+#      pub.dev only exposes the trusted-publisher UI after a package
+#      exists. This is a fresh first-time publish, not a migration
+#      from an existing uploader.
+#   3. At https://pub.dev/packages/battery_status/admin -> Publisher,
+#      associate the package with `nllewellyn.com` (one-click since
+#      the uploader is already a publisher member; no inter-party
+#      transfer is involved).
+#   4. At https://pub.dev/packages/battery_status/admin -> Automated
+#      publishing, enable trusted publishing pointing at this repo and
+#      this exact workflow file path (`.github/workflows/release.yml`).
+#      Configure this *after* step 3 so the trusted-publisher entry is
+#      owned by the publisher rather than the bootstrapping uploader.
+#
+# The OIDC publish step below requires no workflow changes for the
+# verified-publisher setup; `id-token: write` and `flutter pub publish
+# --force` work identically regardless of which publisher owns the
+# package.
 #
 # See doc/publishing.md for the full release procedure.
 

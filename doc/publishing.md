@@ -17,10 +17,11 @@ These must be resolved before the first publish; they are not gated by CI.
 
 ### 1. Pub.dev verified publisher (`nllewellyn.com`)
 
-The package will be published under the `nllewellyn.com` verified
-publisher rather than a personal uploader, so the listing on pub.dev
-shows `Publisher: nllewellyn.com` (with a verified-domain checkmark)
-instead of an individual Google account email.
+The package is published as a fresh first-time release directly under
+the `nllewellyn.com` verified publisher — there is no prior uploader
+or other party to transfer ownership from. The pub.dev listing will
+show `Publisher: nllewellyn.com` (with a verified-domain checkmark)
+from the first version onward.
 
 This is independent of the OIDC trusted-publisher configuration in §2:
 verified publisher is a pub.dev-side ownership/branding relationship,
@@ -29,22 +30,28 @@ versions. Both must be in place for the automated release path.
 
 Setup (one-time, in this order):
 
-1. Verify the `nllewellyn.com` domain at
-   `https://pub.dev/create-publisher` (DNS TXT record, takes a few
-   minutes to propagate).
-2. Run the first manual publish (see *Release procedure → First
-   publish* below) from a Google account that will be a member of the
-   publisher. The package lands under that uploader account
-   initially.
-3. At `https://pub.dev/packages/battery_status/admin` →
-   *Publisher* → *Transfer to a verified publisher*, transfer
-   `battery_status` to `nllewellyn.com`.
+1. **Verify the domain.** At `https://pub.dev/create-publisher`,
+   create the `nllewellyn.com` publisher and complete the DNS TXT
+   record verification (a few minutes to propagate). The Google
+   account performing this step (`nllewelln@gmail.com`) becomes the
+   first member of the publisher.
+2. **Claim the package name.** Run the first manual publish (see
+   *Release procedure → First publish* below) from `nllewelln@gmail.com`.
+   This creates `battery_status` on pub.dev with that account as the
+   sole uploader.
+3. **Associate the package with the publisher.** At
+   `https://pub.dev/packages/battery_status/admin` → *Publisher*,
+   select `nllewellyn.com` from the dropdown. Because the uploader is
+   already a member of the publisher, this is a one-click
+   association, not an inter-party transfer; the package is owned by
+   the publisher from that moment on and the listing badge updates
+   immediately.
 
-No `pubspec.yaml` change is required for the verified-publisher
-relationship — it is stored on pub.dev's side and surfaced via the
-package listing UI. `homepage` and `repository` continue to point at
-the GitHub repo because that is the canonical source location; pub.dev
-displays the publisher badge separately.
+`pubspec.yaml` already reflects the publisher identity: `homepage`
+points at `https://nllewellyn.com` (the verified domain) and
+`repository`/`issue_tracker` point at the GitHub source repo. Pana
+URL-probes both, and pub.dev surfaces the publisher badge separately
+from these fields.
 
 ### 2. Pub.dev trusted publisher (OIDC)
 
@@ -52,18 +59,19 @@ CI-8 publishes via OIDC, not a long-lived token. Before the release
 workflow can succeed:
 
 1. Visit `https://pub.dev/packages/battery_status/admin` (after the
-   transfer to `nllewellyn.com` in §1 lands) → *Automated publishing*.
+   publisher association in §1 step 3 lands) → *Automated publishing*.
 2. Add GitHub Actions as a trusted publisher pointed at
    `nick-llewellyn/battery_status`, workflow `.github/workflows/release.yml`,
    environment unset.
 
-The trusted-publisher relationship lives on the package, not on the
-publisher, so configuring it after the §1 transfer ensures the
-publisher (rather than the original uploader) controls automated
-publishing going forward. The `release.yml` workflow itself needs no
-changes for the verified-publisher setup; the
+The trusted-publisher relationship lives on the package, so
+configuring it after the §1 association means the publisher (rather
+than the bootstrapping uploader) is the authoritative owner of the
+automated-publish entry going forward. The `release.yml` workflow
+itself needs no changes for the verified-publisher setup; the
 `id-token: write` permission and `flutter pub publish --force`
-invocation are identical regardless of who owns the package.
+invocation are identical regardless of which publisher owns the
+package.
 
 The first publish has to happen manually with `flutter pub publish` from
 a maintainer's machine — pub.dev only enables the trusted-publisher UI
@@ -142,8 +150,9 @@ ships the package to pub.dev for the first publish.
 
 After this completes once:
 
-1. Transfer the package to the `nllewellyn.com` verified publisher
-   (see *Blockers §1*, step 3).
+1. Associate the package with the `nllewellyn.com` verified publisher
+   (see *Blockers §1*, step 3 — one-click selection from the package
+   admin page since the uploader is already a publisher member).
 2. Configure trusted publisher (see *Blockers §2*).
 
 Subsequent releases use the automated path below, which publishes via
